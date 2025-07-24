@@ -1,3 +1,16 @@
+@php
+    $fees = config('services.document_fees');
+    $maxCount = max(array_merge([1], array_values($document_type_counts)));
+    $barColors = [
+        'Official Transcript' => '#8B0000', // dark red
+        'Diploma Copy' => '#D4AF37', // gold
+        'Enrollment Verification' => '#4CAF50', // green
+        'Course Completion Cert' => '#1E40AF', // blue
+        'Certificate of Enrollment' => '#A52A2A', // brown
+        'Certificate of Graduation' => '#F44336', // red
+        'Other' => '#616161', // gray
+    ];
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Request Cashier Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         :root {
             --primary: #8B0000; /* College dark red */
@@ -367,26 +381,7 @@
         .progress-fill {
             height: 100%;
             border-radius: 4px;
-        }
-
-        .progress-fill.transcript {
             background: var(--primary);
-            width: 65%;
-        }
-
-        .progress-fill.diploma {
-            background: var(--secondary);
-            width: 20%;
-        }
-
-        .progress-fill.certification {
-            background: var(--success);
-            width: 10%;
-        }
-
-        .progress-fill.other {
-            background: var(--warning);
-            width: 5%;
         }
 
         /* Recent Requests Table */
@@ -892,10 +887,7 @@
                         </div>
                         <div>
                             <div class="card-title">Pending Payments</div>
-                            <div class="card-value">12</div>
-                            <div class="card-change positive">
-                                <i class="fas fa-arrow-up"></i> 2 from yesterday
-                            </div>
+                            <div class="card-value">{{ $pending_payments }}</div>
                         </div>
                     </div>
                 </div>
@@ -907,10 +899,7 @@
                         </div>
                         <div>
                             <div class="card-title">Paid Today</div>
-                            <div class="card-value">24</div>
-                            <div class="card-change positive">
-                                <i class="fas fa-arrow-up"></i> 5 from yesterday
-                            </div>
+                            <div class="card-value">{{ $paid_today }}</div>
                         </div>
                     </div>
                 </div>
@@ -921,11 +910,8 @@
                         <i class="fas fa-peso-sign"></i>
                         </div>
                         <div>
-                            <div class="card-title">Total Collected</div>
-                            <div class="card-value">₱1,245</div>
-                            <div class="card-change positive">
-                                <i class="fas fa-arrow-up"></i> 18% from yesterday
-                            </div>
+                            <div class="card-title">Total Collected (This Month)</div>
+                            <div class="card-value">₱{{ number_format($total_collected_month, 2) }}</div>
                         </div>
                     </div>
                 </div>
@@ -936,11 +922,8 @@
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <div>
-                            <div class="card-title">Total Requests</div>
-                            <div class="card-value">36</div>
-                            <div class="card-change positive">
-                                <i class="fas fa-arrow-up"></i> 8 from yesterday
-                            </div>
+                            <div class="card-title">Total Approved Requests</div>
+                            <div class="card-value">{{ $total_approved }}</div>
                         </div>
                     </div>
                 </div>
@@ -952,34 +935,15 @@
                     <h2 class="section-title">Document Type Breakdown</h2>
                 </div>
                 <div class="progress-container">
+                    @foreach($document_type_counts as $type => $count)
                     <div class="progress-item">
-                        <div class="progress-label">Transcripts</div>
+                        <div class="progress-label">{{ $type }}</div>
                         <div class="progress-bar">
-                            <div class="progress-fill transcript"></div>
+                            <div class="progress-fill" style="width: {{ $maxCount > 0 ? number_format(($count / $maxCount) * 100, 2, '.', '') : '0' }}%; background-color: {{ $barColors[$type] ?? '#888' }};"></div>
                         </div>
-                        <div class="progress-value">65%</div>
+                        <div class="progress-value">{{ $count }}</div>
                     </div>
-                    <div class="progress-item">
-                        <div class="progress-label">Diplomas</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill diploma"></div>
-                        </div>
-                        <div class="progress-value">20%</div>
-                    </div>
-                    <div class="progress-item">
-                        <div class="progress-label">Certifications</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill certification"></div>
-                        </div>
-                        <div class="progress-value">10%</div>
-                    </div>
-                    <div class="progress-item">
-                        <div class="progress-label">Other</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill other"></div>
-                        </div>
-                        <div class="progress-value">5%</div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -996,69 +960,40 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Request ID</th>
+                            <th>Reference #</th>
                             <th>Student</th>
-                            <th>Document Type</th>
+                            <th>Document Types</th>
                             <th>Amount</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach($document_requests as $req)
                         <tr>
-                            <td class="request-id">#DOC-2023-1025</td>
-                            <td>Michael Johnson</td>
-                            <td>Official Transcript</td>
-                            <td>₱15.00</td>
-                            <td><span class="status-badge status-paid">Paid</span></td>
+                            <td class="request-id">{{ $req->reference_number }}</td>
+                            <td>{{ $req->first_name }} {{ $req->last_name }}</td>
+                            <td>
+                                @foreach($req->requestedDocuments as $doc)
+                                    {{ $doc->document_type }} ({{ $doc->quantity }})@if(!$loop->last), @endif
+                                @endforeach
+                            </td>
+                            <td>
+                                @php
+                                    $amount = 0;
+                                    foreach ($req->requestedDocuments as $doc) {
+                                        $amount += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
+                                    }
+                                @endphp
+                                ₱{{ number_format($amount, 2) }}
+                            </td>
+                            <td><span class="status-badge status-paid">Approved</span></td>
                             <td>
                                 <button class="action-btn"><i class="fas fa-receipt"></i></button>
                                 <button class="action-btn"><i class="fas fa-print"></i></button>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="request-id">#DOC-2023-1024</td>
-                            <td>Sarah Williams</td>
-                            <td>Diploma Copy</td>
-                            <td>₱25.00</td>
-                            <td><span class="status-badge status-pending">Pending</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openPaymentModal()"><i class="fas fa-credit-card"></i></button>
-                                <button class="action-btn"><i class="fas fa-times"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="request-id">#DOC-2023-1023</td>
-                            <td>Robert Brown</td>
-                            <td>Enrollment Verification</td>
-                            <td>₱10.00</td>
-                            <td><span class="status-badge status-paid">Paid</span></td>
-                            <td>
-                                <button class="action-btn"><i class="fas fa-receipt"></i></button>
-                                <button class="action-btn"><i class="fas fa-print"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="request-id">#DOC-2023-1022</td>
-                            <td>Emily Davis</td>
-                            <td>Course Completion Cert</td>
-                            <td>₱20.00</td>
-                            <td><span class="status-badge status-cancelled">Cancelled</span></td>
-                            <td>
-                                <button class="action-btn"><i class="fas fa-redo"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="request-id">#DOC-2023-1021</td>
-                            <td>David Wilson</td>
-                            <td>Official Transcript</td>
-                            <td>₱15.00</td>
-                            <td><span class="status-badge status-pending">Pending</span></td>
-                            <td>
-                                <button class="action-btn" onclick="openPaymentModal()"><i class="fas fa-credit-card"></i></button>
-                                <button class="action-btn"><i class="fas fa-times"></i></button>
-                            </td>
-                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -1070,48 +1005,39 @@
                 <div class="section-header">
                     <h2 class="section-title">Process Document Payment</h2>
                 </div>
-                
+                <!-- Search Bar for Filtering Requests -->
+                <div class="search-bar" style="margin-bottom: 1rem; width: 100%;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="paymentSearchInput" placeholder="Search by ID number, name, or reference number..." autocomplete="off">
+                    <div id="paymentSearchResults" style="position: absolute; background: #fff; border: 1px solid #ccc; z-index: 10; width: 100%; display: none;"></div>
+                </div>
                 <div class="payment-form">
                     <div class="form-row">
-                        <label class="form-label">Request ID</label>
-                        <input type="text" class="form-control" placeholder="Enter request ID">
+                        <label class="form-label">Reference Number</label>
+                        <input type="text" class="form-control" id="referenceNumberInput" placeholder="Enter reference number" autocomplete="off">
                     </div>
-                    
                     <div class="form-row">
                         <label class="form-label">Student Name</label>
-                        <input type="text" class="form-control" placeholder="Search student">
+                        <input type="text" class="form-control" id="studentNameInput" placeholder="Student name" readonly>
                     </div>
-                    
                     <div class="form-row">
-                        <label class="form-label">Document Type</label>
-                        <select class="form-control">
-                            <option>Select document type</option>
-                            <option>Official Transcript</option>
-                            <option>Diploma Copy</option>
-                            <option>Enrollment Verification</option>
-                            <option>Course Completion Certificate</option>
-                        </select>
+                        <label class="form-label">Document Type(s)</label>
+                        <input type="text" class="form-control" id="documentTypeInput" placeholder="Document type(s)" readonly>
                     </div>
-                    
                     <div class="form-row">
                         <label class="form-label">Amount Due</label>
-                        <input type="text" class="form-control" value="$25.00" readonly>
+                        <input type="text" class="form-control" id="amountDueInput" value="" readonly>
                     </div>
-                    
                     <div class="form-row">
                         <label class="form-label">Amount Received</label>
-                        <input type="text" class="form-control" placeholder="Enter amount">
+                        <input type="text" class="form-control" id="amountReceivedInput" placeholder="Enter amount">
                     </div>
-                    
                     <div class="form-row">
                         <label class="form-label">Change</label>
-                        <input type="text" class="form-control" value="$0.00" readonly>
+                        <input type="text" class="form-control" id="changeInput" value="₱0.00" readonly>
                     </div>
                 </div>
-                
-               
-                
-                <button class="submit-payment">
+                <button class="submit-payment" id="processPaymentBtn">
                     <i class="fas fa-check-circle"></i> Process Payment
                 </button>
             </div>
@@ -1146,52 +1072,40 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Request ID</th>
+                            <th>Reference #</th>
                             <th>Student</th>
-                            <th>Document Type</th>
-                            <th>Date Requested</th>
+                            <th>Document Types</th>
                             <th>Amount</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach($document_requests as $req)
                         <tr>
-                            <td class="request-id">#DOC-2023-1030</td>
-                            <td>Jennifer Lopez</td>
-                            <td>Official Transcript</td>
-                            <td>05/20/2023</td>
-                            <td>₱15.00</td>
-                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td class="request-id">{{ $req->reference_number }}</td>
+                            <td>{{ $req->first_name }} {{ $req->last_name }}</td>
                             <td>
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
+                                @foreach($req->requestedDocuments as $doc)
+                                    {{ $doc->document_type }} ({{ $doc->quantity }})@if(!$loop->last), @endif
+                                @endforeach
                             </td>
-                        </tr>
-                        <tr>
-                            <td class="request-id">#DOC-2023-1029</td>
-                            <td>Thomas Anderson</td>
-                            <td>Diploma Copy</td>
-                            <td>05/19/2023</td>
-                            <td>₱25.00</td>
-                            <td><span class="status-badge status-paid">Paid</span></td>
                             <td>
-                                <button class="action-btn"><i class="fas fa-receipt"></i></button>
-                                <button class="action-btn"><i class="fas fa-print"></i></button>
+                                @php
+                                    $amount = 0;
+                                    foreach ($req->requestedDocuments as $doc) {
+                                        $amount += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
+                                    }
+                                @endphp
+                                ₱{{ number_format($amount, 2) }}
                             </td>
-                        </tr>
-                        <tr>
-                            <td class="request-id">#DOC-2023-1028</td>
-                            <td>Lisa Ray</td>
-                            <td>Enrollment Verification</td>
-                            <td>05/18/2023</td>
-                            <td>₱10.00</td>
-                            <td><span class="status-badge status-paid">Paid</span></td>
+                            <td><span class="status-badge status-paid">Approved</span></td>
                             <td>
                                 <button class="action-btn"><i class="fas fa-receipt"></i></button>
                                 <button class="action-btn"><i class="fas fa-print"></i></button>
                             </td>
                         </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -1531,6 +1445,137 @@
                 // You can add logic here to show different report content
                 // based on which tab was clicked
             });
+        });
+
+        // Prepare approved requests data for JS
+        const approvedRequests = JSON.parse('{!! json_encode($approved_requests) !!}');
+        const fees = JSON.parse('{!! json_encode($fees) !!}');
+
+        function formatAmount(request) {
+            let amount = 0;
+            if (request.requested_documents) {
+                request.requested_documents.forEach(doc => {
+                    amount += (fees[doc.document_type] ?? 250) * doc.quantity;
+                });
+            }
+            return amount;
+        }
+
+        // Search/filter logic
+        const searchInput = document.getElementById('paymentSearchInput');
+        const searchResults = document.getElementById('paymentSearchResults');
+        const referenceInput = document.getElementById('referenceNumberInput');
+        const studentNameInput = document.getElementById('studentNameInput');
+        const documentTypeInput = document.getElementById('documentTypeInput');
+        const amountDueInput = document.getElementById('amountDueInput');
+        const amountReceivedInput = document.getElementById('amountReceivedInput');
+        const changeInput = document.getElementById('changeInput');
+        let selectedRequest = null;
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            if (!query) {
+                searchResults.style.display = 'none';
+                searchResults.innerHTML = '';
+                return;
+            }
+            const matches = approvedRequests.filter(req =>
+                req.reference_number.toLowerCase().includes(query) ||
+                req.student_id?.toLowerCase().includes(query) ||
+                (req.first_name + ' ' + req.last_name).toLowerCase().includes(query)
+            );
+            if (matches.length === 0) {
+                searchResults.style.display = 'none';
+                searchResults.innerHTML = '';
+                return;
+            }
+            searchResults.innerHTML = matches.map(req =>
+                `<div class='search-result-item' style='padding:8px; cursor:pointer;' data-ref='${req.reference_number}'>
+                    <strong>${req.reference_number}</strong> - ${req.first_name} ${req.last_name} (${req.student_id || ''})
+                </div>`
+            ).join('');
+            searchResults.style.display = 'block';
+        });
+
+        searchResults.addEventListener('click', function(e) {
+            const item = e.target.closest('.search-result-item');
+            if (item) {
+                const ref = item.getAttribute('data-ref');
+                selectRequestByReference(ref);
+                searchResults.style.display = 'none';
+                searchInput.value = ref;
+            }
+        });
+
+        referenceInput.addEventListener('change', function() {
+            selectRequestByReference(this.value);
+        });
+
+        amountReceivedInput.addEventListener('input', function() {
+            const amountDue = parseFloat((amountDueInput.value || '').replace(/[^\d.]/g, '')) || 0;
+            const received = parseFloat(this.value) || 0;
+            const change = received - amountDue;
+            changeInput.value = '₱' + (change > 0 ? change.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00');
+        });
+
+        function selectRequestByReference(ref) {
+            const req = approvedRequests.find(r => r.reference_number === ref);
+            selectedRequest = req;
+            if (req) {
+                referenceInput.value = req.reference_number;
+                studentNameInput.value = req.first_name + ' ' + req.last_name;
+                documentTypeInput.value = req.requested_documents.map(doc => `${doc.document_type} (${doc.quantity})`).join(', ');
+                amountDueInput.value = '₱' + formatAmount(req).toLocaleString();
+            } else {
+                studentNameInput.value = '';
+                documentTypeInput.value = '';
+                amountDueInput.value = '';
+            }
+        }
+
+        // Process Payment button functionality
+        const processPaymentBtn = document.getElementById('processPaymentBtn');
+        processPaymentBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!selectedRequest) {
+                alert('Please select a valid reference number.');
+                return;
+            }
+            const amountReceived = parseFloat(amountReceivedInput.value) || 0;
+            const amountDue = parseFloat((amountDueInput.value || '').replace(/[^-\u007F]/g, '')) || 0;
+            if (amountReceived < amountDue) {
+                alert('Amount received is less than amount due.');
+                return;
+            }
+            fetch('/process-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    reference_number: selectedRequest.reference_number,
+                    amount_received: amountReceived
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Payment processed and email sent!');
+                    // Optionally update UI or reload
+                    window.location.reload();
+                } else {
+                    alert('Failed to process payment: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(() => alert('Failed to process payment.'));
+        });
+
+        // Hide search results on click outside
+        window.addEventListener('click', function(e) {
+            if (!searchResults.contains(e.target) && e.target !== searchInput) {
+                searchResults.style.display = 'none';
+            }
         });
     </script>
 </body>

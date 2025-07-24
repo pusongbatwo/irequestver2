@@ -9,14 +9,19 @@ class DocumentRequest extends Model
 {
     use HasFactory;
 
+    protected $table = 'document_requests';
     protected $fillable = [
-        'student_id',
-        'document_type',
-        'purpose',
-        'special_instructions',
-        'reference_number',
-        'status',
-        'payment_status'
+        'student_id', 'first_name', 'middle_name', 'last_name', 'course',
+        'province', 'city', 'barangay', 'mobile_number', 'email',
+        'purpose', 'special_instructions', 'status', 'payment_status',
+        'request_date', 'reference_number'
+    ];
+
+    public $timestamps = false; // If you only have created_at, not updated_at
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'request_date' => 'datetime',
     ];
 
     // Relationship to PersonalInformation
@@ -30,5 +35,9 @@ class DocumentRequest extends Model
     {
         return $this->personalInformation->contact;
     }
-    
+
+    public function requestedDocuments()
+    {
+        return $this->hasMany(RequestedDocument::class, 'request_id');
+    }
 }

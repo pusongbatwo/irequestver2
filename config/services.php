@@ -31,4 +31,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'document_fees' => [
+        'Official Transcript' => 250,
+        'Diploma Copy' => 250,
+        'Enrollment Verification' => 250,
+        'Course Completion Cert' => 250,
+        'Certificate of Enrollment' => 250,
+        'Certificate of Graduation' => 250,
+        'Other' => 250,
+    ],
+
 ];

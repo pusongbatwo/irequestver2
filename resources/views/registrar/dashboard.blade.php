@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Registrar Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -189,6 +190,17 @@
             font-weight: 600;
             padding: 2px 6px;
             border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-badge.updating {
+            transform: scale(1.2);
+            background: var(--danger);
         }
 
         .sidebar-footer {
@@ -423,44 +435,43 @@
             width: 120px;
             height: 120px;
             margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            transform: rotate(-90deg);
+            z-index: 1;
         }
 
         .circular-progress {
             position: relative;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
+            width: 100px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--bg-light);
-        }
-
-        .circular-progress::before {
-            content: "";
-            position: absolute;
-            width: 100px;
-            height: 100px;
+            background: #fff;
             border-radius: 50%;
-            background: var(--light);
+            z-index: 2;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
 
-        .progress-value {
+        .progress-number {
             position: relative;
             font-size: 24px;
             font-weight: 600;
             color: var(--primary);
-        }
-
-        .progress-number {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--primary);
-            z-index: 2;
+            z-index: 3;
+            text-align: center;
+            width: 100%;
         }
 
         .progress-title {
@@ -567,17 +578,36 @@
         }
 
         .action-btn {
-            background: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
             border: none;
-            color: var(--gray-dark);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 16px;
-            margin-left: 8px;
-            transition: color 0.2s;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
 
-        .action-btn:hover {
-            color: var(--primary);
+        .approve-btn {
+            background: #4CAF50;
+            color: #fff;
+        }
+
+        .approve-btn:hover {
+            background: #388E3C;
+        }
+
+        .reject-btn {
+            background: #F44336;
+            color: #fff;
+            margin-left: 8px;
+        }
+
+        .reject-btn:hover {
+            background: #B71C1C;
         }
 
         .progress-svg {
@@ -972,6 +1002,98 @@
             justify-content: flex-end;
             gap: 0.5rem;
         }
+
+        .action-btn-group {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .action-btn {
+            min-width: 80px;
+            height: 28px;
+            font-size: 12px;
+            padding: 4px 10px;
+            justify-content: center;
+        }
+
+        /* Department Logo Grid Consistent Image Size */
+        .department-logo-img {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #f5f5f5;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Custom Context Menu for Department Logo */
+        #logoContextMenu {
+            position: absolute;
+            z-index: 2000;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: none;
+            min-width: 180px;
+            padding: 0.5rem 0;
+        }
+        #logoContextMenu button {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 10px 20px;
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #logoContextMenu button:hover {
+            background: #f5f5f5;
+        }
+
+        /* Custom pagination styling for dashboard */
+        .pagination {
+            display: flex !important;
+            gap: 8px !important;
+            justify-content: flex-end !important;
+            margin-top: 1rem !important;
+        }
+        .pagination .page-item {
+            display: inline-block !important;
+        }
+        .pagination .page-link {
+            background: var(--gray) !important;
+            color: var(--dark) !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 8px 16px !important;
+            margin: 0 2px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: background 0.2s, color 0.2s !important;
+            text-decoration: none !important;
+        }
+        .pagination .page-link:hover {
+            background: var(--primary-light) !important;
+            color: #fff !important;
+        }
+        .pagination .active .page-link,
+        .pagination .page-link.active {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border: none !important;
+        }
+        .pagination .disabled .page-link {
+            background: var(--gray) !important;
+            color: var(--gray-dark) !important;
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
 <body>
@@ -1000,7 +1122,7 @@
                     <a href="#" class="menu-link" data-section="documentRequests">
                         <i class="fas fa-file-alt menu-icon"></i>
                         <span class="menu-text">Document Requests</span>
-                        <span class="menu-badge">24</span>
+                        <span class="menu-badge" id="pendingRequestsBadge">{{ $analytics['pending'] ?? 0 }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -1025,10 +1147,16 @@
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="#" class="menu-link" data-section="notifications">
-                        <i class="fas fa-bell menu-icon"></i>
-                        <span class="menu-text">Notifications</span>
-                        <span class="menu-badge">5</span>
+                    <a href="#" class="menu-link" data-section="systemLog">
+                        <i class="fas fa-clipboard-list menu-icon"></i>
+                        <span class="menu-text">System Log</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link" data-section="liveChat">
+                        <i class="fas fa-comments menu-icon"></i>
+                        <span class="menu-text">Live Chat</span>
+                        <span class="menu-badge" id="liveChatBadge" style="display:none;">0</span>
                     </a>
                 </li>
             </ul>
@@ -1061,7 +1189,7 @@
                     <div class="card-header">
                         <div>
                             <div class="card-title">Pending Requests</div>
-                            <div class="card-value" id="pendingRequests">0</div>
+                            <div class="card-value" id="pendingRequests">{{ $analytics['pending'] ?? 0 }}</div>
                             <div class="card-change positive">
                                 <i class="fas fa-arrow-up"></i> 0% from last week
                             </div>
@@ -1074,14 +1202,14 @@
                 <div class="analytics-card">
                     <div class="card-header">
                         <div>
-                            <div class="card-title">In Process</div>
-                            <div class="card-value" id="inProcessRequests">0</div>
+                            <div class="card-title">Approved Requests</div>
+                            <div class="card-value" id="approvedRequests">{{ $analytics['approved'] ?? 0 }}</div>
                             <div class="card-change positive">
                                 <i class="fas fa-arrow-up"></i> 0% from last week
                             </div>
                         </div>
                         <div class="card-icon processed">
-                            <i class="fas fa-sync-alt"></i>
+                            <i class="fas fa-check"></i>
                         </div>
                     </div>
                 </div>
@@ -1089,7 +1217,7 @@
                     <div class="card-header">
                         <div>
                             <div class="card-title">Completed</div>
-                            <div class="card-value" id="completedRequests">0</div>
+                            <div class="card-value" id="completedRequests">{{ $analytics['completed'] ?? 0 }}</div>
                             <div class="card-change positive">
                                 <i class="fas fa-arrow-up"></i> 0% from last week
                             </div>
@@ -1103,7 +1231,7 @@
                     <div class="card-header">
                         <div>
                             <div class="card-title">Rejected</div>
-                            <div class="card-value" id="rejectedRequests">0</div>
+                            <div class="card-value" id="rejectedRequests">{{ $analytics['rejected'] ?? 0 }}</div>
                             <div class="card-change negative">
                                 <i class="fas fa-arrow-down"></i> 0% from last week
                             </div>
@@ -1121,7 +1249,7 @@
                             <circle class="progress-circle progress-pending" cx="60" cy="60" r="50" style="--dash-offset: 188.4;"></circle>
                         </svg>
                         <div class="circular-progress">
-                            <div class="progress-number" id="pendingRequestsProgress">0</div>
+                            <div class="progress-number" id="pendingRequestsProgress">{{ $analytics['pending'] ?? 0 }}</div>
                         </div>
                     </div>
                     <h3 class="progress-title">Pending Requests</h3>
@@ -1133,11 +1261,11 @@
                             <circle class="progress-circle progress-processing" cx="60" cy="60" r="50" style="--dash-offset: 125.6;"></circle>
                         </svg>
                         <div class="circular-progress">
-                            <div class="progress-number" id="inProcessRequestsProgress">0</div>
+                            <div class="progress-number" id="approvedRequestsProgress">{{ $analytics['approved'] ?? 0 }}</div>
                         </div>
                     </div>
-                    <h3 class="progress-title">In Process</h3>
-                    <p class="progress-subtitle">Being processed now</p>
+                    <h3 class="progress-title">Approved Requests</h3>
+                    <p class="progress-subtitle">Requests approved by registrar</p>
                 </div>
                 <div class="progress-card">
                     <div class="progress-container">
@@ -1145,7 +1273,7 @@
                             <circle class="progress-circle progress-completed" cx="60" cy="60" r="50" style="--dash-offset: 219.8;"></circle>
                         </svg>
                         <div class="circular-progress">
-                            <div class="progress-number" id="completedRequestsProgress">0</div>
+                            <div class="progress-number" id="completedRequestsProgress">{{ $analytics['completed'] ?? 0 }}</div>
                         </div>
                     </div>
                     <h3 class="progress-title">Completed</h3>
@@ -1157,7 +1285,7 @@
                             <circle class="progress-circle progress-rejected" cx="60" cy="60" r="50" style="--dash-offset: 282.6;"></circle>
                         </svg>
                         <div class="circular-progress">
-                            <div class="progress-number" id="rejectedRequestsProgress">0</div>
+                            <div class="progress-number" id="rejectedRequestsProgress">{{ $analytics['rejected'] ?? 0 }}</div>
                         </div>
                     </div>
                     <h3 class="progress-title">Rejected</h3>
@@ -1175,54 +1303,48 @@
                 <table id="requestTable">
                     <thead>
                         <tr>
-                            <th>Student ID</th>
+                            <th>Reference #</th>
                             <th>Student Name</th>
-                            <th>Document Type</th>
-                            <th>Date Requested</th>
+                            <th>Course</th>
                             <th>Status</th>
+                            <th>Requested Documents</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if(isset($requests) && $requests->count() > 0)
-                            @foreach($requests as $request)
-                                <tr>
-                                    <td class="request-id">{{ $request->student_id }}</td>
-                                    <td>
-                                        @if(isset($request->first_name) && isset($request->last_name))
-                                            {{ $request->first_name }} {{ $request->last_name }}
-                                        @elseif(isset($request->personalInfo))
-                                            {{ $request->personalInfo->first_name }} {{ $request->personalInfo->last_name }}
-                                        @else
-                                            Name Not Available
-                                        @endif
-                                    </td>
-                                    <td>{{ $request->document_type ?? 'N/A' }}</td>
-                                    <td>{{ $request->date_requested ? $request->date_requested->format('m/d/Y') : 'N/A' }}</td>
-                                    <td>
-                                        <span class="status-badge status-{{ isset($request->status) ? strtolower($request->status) : 'unknown' }}">
-                                            {{ $request->status ?? 'Status Unknown' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                        <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="6" class="text-center py-4">
-                                    <div class="text-gray-500">
-                                        <i class="fas fa-inbox fa-2x mb-2"></i>
-                                        <p class="font-medium">No document requests found</p>
-                                        @if(!isset($requests))
-                                            <p class="text-sm">(Request data not loaded)</p>
-                                        @endif
+                        @foreach($dashboardRequests as $req)
+                        <tr>
+                            <td>{{ $req->reference_number }}</td>
+                            <td>{{ $req->first_name }} {{ $req->last_name }}</td>
+                            <td>{{ $req->course }}</td>
+                            <td>{{ ucfirst($req->status) }}</td>
+                            <td>
+                                @foreach($req->requestedDocuments as $doc)
+                                    {{ $doc->document_type }} ({{ $doc->quantity }})<br>
+                                @endforeach
+                            </td>
+                            <td>
+                                @if($req->status == 'pending')
+                                    <div class="action-btn-group">
+                                        <form action="{{ route('registrar.approve', $req->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="action-btn approve-btn" title="Approve">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('registrar.reject', $req->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="action-btn reject-btn" title="Reject">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
                                     </div>
-                                </td>
-                            </tr>
-                        @endif
+                                @else
+                                    <span>{{ ucfirst($req->status) }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -1244,7 +1366,7 @@
                     <div class="filter-tabs">
                         <button class="filter-tab active">All Requests</button>
                         <button class="filter-tab">Pending</button>
-                        <button class="filter-tab">In Process</button>
+                        <button class="filter-tab">Approved</button>
                         <button class="filter-tab">Completed</button>
                         <button class="filter-tab">Rejected</button>
                     </div>
@@ -1258,42 +1380,57 @@
                         <input type="date" class="filter-date" placeholder="Filter by date">
                     </div>
                 </div>
-                <table>
+                <table id="documentRequestsTable">
                     <thead>
                         <tr>
                             <th>Request ID</th>
                             <th>Student</th>
-                            <th>Document Type</th>
+                            <th>Document Type(s)</th>
                             <th>Date Requested</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>DR-2023-001</td>
-                            <td>John Smith</td>
-                            <td>Official Transcript</td>
-                            <td>05/15/2023</td>
-                            <td><span class="status-badge status-completed">Completed</span></td>
+                        @foreach($requests as $req)
+                        <tr
+                            data-status="{{ strtolower($req->status) }}"
+                            data-documents="@foreach($req->requestedDocuments as $doc){{ strtolower($doc->document_type) }},@endforeach"
+                            data-date="{{ $req->created_at ? $req->created_at->format('Y-m-d') : ($req->request_date ? \Carbon\Carbon::parse($req->request_date)->format('Y-m-d') : '') }}"
+                        >
+                            <td>{{ $req->reference_number }}</td>
+                            <td>{{ $req->first_name }} {{ $req->last_name }}</td>
                             <td>
-                                <button class="action-btn"><i class="fas fa-print"></i></button>
-                                <button class="action-btn"><i class="fas fa-download"></i></button>
+                                @foreach($req->requestedDocuments as $doc)
+                                    {{ $doc->document_type }} ({{ $doc->quantity }})<br>
+                                @endforeach
+                            </td>
+                            <td>{{ $req->created_at ? $req->created_at->format('m/d/Y') : ($req->request_date ? \Carbon\Carbon::parse($req->request_date)->format('m/d/Y') : '') }}</td>
+                            <td><span class="status-badge status-{{ strtolower($req->status) }}">{{ ucfirst($req->status) }}</span></td>
+                            <td>
+                                @if($req->status == 'pending')
+                                    <form action="{{ route('registrar.approve', $req->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="action-btn approve-btn" title="Approve">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('registrar.reject', $req->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        <button type="submit" class="action-btn reject-btn" title="Reject">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
-                        <tr>
-                            <td>DR-2023-002</td>
-                            <td>Emily Johnson</td>
-                            <td>Diploma Copy</td>
-                            <td>05/18/2023</td>
-                            <td><span class="status-badge status-processing">Processing</span></td>
-                            <td>
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
+                <!-- Pagination Controls -->
+                <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 8px;">
+                    {{ $requests->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
 
@@ -1302,71 +1439,227 @@
             <div class="recent-requests">
                 <div class="section-header">
                     <h2 class="section-title">Student Records Management</h2>
-                    <div class="student-actions">
-                        <button class="import-btn" onclick="openImportModal()">
-                            <i class="fas fa-file-import"></i> Import Records
-                        </button>
-                        <div class="search-bar" style="width: 300px; margin-left: auto;">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" placeholder="Search students...">
-                        </div>
-                    </div>
                 </div>
-                <div class="student-filters">
-                    <div class="filter-options">
-                        <select class="filter-select">
-                            <option>All Programs</option>
-                            <option>Computer Science</option>
-                            <option>Business Administration</option>
-                            <option>Engineering</option>
-                        </select>
-                        <select class="filter-select">
-                            <option>All Years</option>
-                            <option>1st Year</option>
-                            <option>2nd Year</option>
-                            <option>3rd Year</option>
-                            <option>4th Year</option>
-                        </select>
+                <!-- Department Logo Grid -->
+                <div id="departmentGrid" style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; margin-bottom: 2rem;">
+                    <!-- Updated departments with new images and names -->
+                    @php
+                        $departments = [
+                            ["name" => "BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY", "img" => "/images/it.png"],
+                            ["name" => "BACHELOR OF SCIENCE IN ENTREPRENEURSHIP", "img" => "/images/bse.png"],
+                            ["name" => "BACHELOR OF SCIENCE IN CRIMINOLOGY", "img" => "/images/CRIM.png"],
+                            ["name" => "BACHELOR OF ELEMENTARY EDUCATION", "img" => "/images/beed.png"],
+                            ["name" => "BACHELOR OF EARLY CHILDHOOD EDUCATION", "img" => "/images/beced.png"],
+                            ["name" => "BACHELOR OF SCIENCE IN HOSPITALITY MANAGEMENT", "img" => "/images/hm.png"],
+                            ["name" => "BACHELOR OF PUBLIC ADMINISTRATION", "img" => "/images/BPA.jpg"],
+                        ];
+                    @endphp
+                    @foreach($departments as $dept)
+                    <div class="department-logo-card" data-department="{{ $dept['name'] }}" style="text-align: center; cursor: pointer; width: 140px;">
+                        <img src="{{ $dept['img'] }}" alt="{{ $dept['name'] }}" class="department-logo-img">
+                        <div style="margin-top: 0.5rem; font-weight: 600; font-size: 13px;">{{ $dept['name'] }}</div>
                     </div>
+                    @endforeach
+<!-- Student Records Modal -->
+<div id="studentRecordsModal" class="import-modal" style="display:none;z-index:2100;">
+    <div class="import-modal-content" style="border-top:6px solid #8B0000;max-width:800px;width:90%;">
+        <div class="import-modal-header">
+            <h3 class="import-modal-title" id="studentRecordsModalTitle" style="color:#8B0000;">Student Records</h3>
+            <button class="import-modal-close" onclick="closeStudentRecordsModal()">&times;</button>
+        </div>
+        <div class="import-modal-body" style="max-height:60vh;overflow-y:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f5f5f5;">
+                        <th style="padding:10px 8px;text-align:left;">Student ID</th>
+                        <th style="padding:10px 8px;text-align:left;">Full Name</th>
+                        <th style="padding:10px 8px;text-align:left;">Year Level</th>
+                        <th style="padding:10px 8px;text-align:left;">Status</th>
+                        <th style="padding:10px 8px;text-align:left;">Email</th>
+                        <th style="padding:10px 8px;text-align:left;">Contact</th>
+                    </tr>
+                </thead>
+                <tbody id="studentRecordsModalBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Student ID</th>
-                            <th>Name</th>
-                            <th>Program</th>
-                            <th>Year Level</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>2020-001</td>
-                            <td>Michael Brown</td>
-                            <td>Computer Science</td>
-                            <td>4th Year</td>
-                            <td><span class="status-badge status-completed">Active</span></td>
-                            <td>
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn"><i class="fas fa-file-alt"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2021-045</td>
-                            <td>Sarah Williams</td>
-                            <td>Business Administration</td>
-                            <td>3rd Year</td>
-                            <td><span class="status-badge status-processing">On Leave</span></td>
-                            <td>
-                                <button class="action-btn"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn"><i class="fas fa-file-alt"></i></button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <!-- Custom Context Menu for Department Logo -->
+                <div id="logoContextMenu">
+                    <button id="uploadLogoBtn">Upload Department Logo</button>
+                    <button id="updateLogoBtn">Update Department Logo</button>
+                </div>
+                <!-- Hidden file input for logo upload -->
+                <input type="file" id="logoFileInput" accept="image/*" style="display:none;">
+                <!-- Student Table and Filters (hidden by default) -->
+
+<div id="studentTableSection" style="display: none;">
+    <div class="student-actions" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-bottom:1.5rem;">
+        <button class="action-btn primary" id="openAddStudentModalBtn" style="background:#8B0000;color:#fff;font-weight:600;letter-spacing:1px;">
+            <i class="fas fa-user-plus"></i> Add Student Manually
+        </button>
+        <button class="import-btn" id="openImportStudentModalBtn">
+            <i class="fas fa-file-import"></i> Import Student Records
+        </button>
+        <button class="action-btn secondary" id="backToGridBtn" style="margin-left: 10px;">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div id="addStudentModal" class="import-modal" style="display:none;z-index:2001;">
+    <div class="import-modal-content" style="border-top:6px solid #8B0000;">
+        <div class="import-modal-header">
+            <h3 class="import-modal-title" style="color:#8B0000;">Add Student Record</h3>
+            <button class="import-modal-close" onclick="closeAddStudentModal()">&times;</button>
+        </div>
+        <form method="POST" action="{{ route('students.store') }}">
+            @csrf
+            <div style="margin-bottom:1rem;">
+                <label for="student_id" style="font-weight:600;color:#8B0000;">Student ID</label>
+                <input type="text" name="student_id" id="student_id_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;">
+            </div>
+            <div class="row" style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:1rem;">
+                <div class="col" style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:0.5rem;">
+                    <label for="first_name" style="font-weight:600;color:#8B0000;">First Name</label>
+                    <input type="text" name="first_name" id="first_name_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;padding:0.75rem;font-size:1rem;">
+                </div>
+                <div class="col" style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:0.5rem;">
+                    <label for="middle_name" style="font-weight:600;color:#8B0000;">Middle Name</label>
+                    <input type="text" name="middle_name" id="middle_name_modal" class="form-control" style="border:1.5px solid #8B0000;border-radius:8px;padding:0.75rem;font-size:1rem;">
+                </div>
+                <div class="col" style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:0.5rem;">
+                    <label for="last_name" style="font-weight:600;color:#8B0000;">Last Name</label>
+                    <input type="text" name="last_name" id="last_name_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;padding:0.75rem;font-size:1rem;">
+                </div>
+            </div>
+            <div style="margin-bottom:1rem;display:flex;flex-direction:column;gap:0.5rem;">
+                <label for="program" style="font-weight:600;color:#8B0000;">Program</label>
+                <select name="program" id="program_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;padding:0.75rem;font-size:1rem;">
+                    <option value="">Select Program</option>
+                    <option value="BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY') ? 'selected' : '' }}>BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY</option>
+                    <option value="BACHELOR OF SCIENCE IN ENTREPRENEURSHIP" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF SCIENCE IN ENTREPRENEURSHIP') ? 'selected' : '' }}>BACHELOR OF SCIENCE IN ENTREPRENEURSHIP</option>
+                    <option value="BACHELOR OF SCIENCE IN CRIMINOLOGY" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF SCIENCE IN CRIMINOLOGY') ? 'selected' : '' }}>BACHELOR OF SCIENCE IN CRIMINOLOGY</option>
+                    <option value="BACHELOR OF ELEMENTARY EDUCATION" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF ELEMENTARY EDUCATION') ? 'selected' : '' }}>BACHELOR OF ELEMENTARY EDUCATION</option>
+                    <option value="BACHELOR OF EARLY CHILDHOOD EDUCATION" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF EARLY CHILDHOOD EDUCATION') ? 'selected' : '' }}>BACHELOR OF EARLY CHILDHOOD EDUCATION</option>
+                    <option value="BACHELOR OF SCIENCE IN HOSPITALITY MANAGEMENT" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF SCIENCE IN HOSPITALITY MANAGEMENT') ? 'selected' : '' }}>BACHELOR OF SCIENCE IN HOSPITALITY MANAGEMENT</option>
+                    <option value="BACHELOR OF PUBLIC ADMINISTRATION" {{ (isset($selectedDepartment) && $selectedDepartment == 'BACHELOR OF PUBLIC ADMINISTRATION') ? 'selected' : '' }}>BACHELOR OF PUBLIC ADMINISTRATION</option>
+                </select>
+            </div>
+            <div style="margin-bottom:1rem;">
+                <label for="year_level" style="font-weight:600;color:#8B0000;">Year Level</label>
+                <select name="year_level" id="year_level_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;">
+                    <option value="">Select Year Level</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                </select>
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <label for="status" style="font-weight:600;color:#8B0000;">Status</label>
+                <select name="status" id="status_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;">
+                    <option value="active">Active</option>
+                    <option value="on leave">On Leave</option>
+                    <option value="graduated">Graduated</option>
+                    <option value="dropped">Dropped</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:0.75rem 0;font-size:1rem;background:#8B0000;color:#fff;border:none;border-radius:8px;font-weight:600;letter-spacing:1px;box-shadow:0 2px 8px rgba(139,0,0,0.10);transition:background 0.2s;">Add Student</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if(session('student_added'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Student Added!',
+            text: "{{ session('student_added') }}",
+            confirmButtonColor: '#8B0000',
+        });
+    </script>
+@endif
+
+@if(session('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Request Approved!',
+            text: "{{ session('success') }}",
+            confirmButtonColor: '#8B0000',
+        });
+    </script>
+@endif
+
+<!-- Import Student Modal (reuse existing import modal) -->
+<!-- The import modal already exists as #importModal -->
+
+<script>
+    // Student Records Modal Logic
+    function openStudentRecordsModal(department) {
+        // Set modal title
+        document.getElementById('studentRecordsModalTitle').textContent = department + ' - Student Records';
+        // Get students for department from blade variable
+        let students = @json($students);
+        let records = [];
+        if (students[department]) {
+            // Flatten year_level groups
+            Object.keys(students[department]).forEach(year => {
+                students[department][year].forEach(student => {
+                    records.push(student);
+                });
+            });
+        }
+        // Render table rows
+        let tbody = document.getElementById('studentRecordsModalBody');
+        tbody.innerHTML = '';
+        if (records.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#8B0000;font-weight:600;">No student records found for this program.</td></tr>';
+        } else {
+            records.forEach(student => {
+                tbody.innerHTML += `<tr>
+                    <td style='padding:8px;'>${student.student_id}</td>
+                    <td style='padding:8px;'>${student.first_name} ${student.middle_name ? student.middle_name + ' ' : ''}${student.last_name}</td>
+                    <td style='padding:8px;'>${student.year_level}</td>
+                    <td style='padding:8px;'>${student.status}</td>
+                    <td style='padding:8px;'>${student.email ?? '-'}</td>
+                    <td style='padding:8px;'>${student.contact ?? '-'}</td>
+                </tr>`;
+            });
+        }
+        document.getElementById('studentRecordsModal').style.display = 'flex';
+    }
+    function closeStudentRecordsModal() {
+        document.getElementById('studentRecordsModal').style.display = 'none';
+    }
+    // Attach click event to department logos
+    document.querySelectorAll('.department-logo-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const department = this.getAttribute('data-department');
+            openStudentRecordsModal(department);
+        });
+    });
+    // Modal logic for Add Student
+    function openAddStudentModal() {
+        document.getElementById('addStudentModal').style.display = 'flex';
+    }
+    function closeAddStudentModal() {
+        document.getElementById('addStudentModal').style.display = 'none';
+    }
+    document.getElementById('openAddStudentModalBtn').addEventListener('click', openAddStudentModal);
+    // Modal logic for Import Student
+    document.getElementById('openImportStudentModalBtn').addEventListener('click', function() {
+        document.getElementById('importModal').style.display = 'flex';
+    });
+</script>
             </div>
         </div>
 
@@ -1532,38 +1825,175 @@
             </div>
         </div>
 
-        <!-- Notifications UI -->
-        <div id="notificationsUI" class="feature-ui">
+        <!-- System Log UI -->
+        <div id="systemLogUI" class="feature-ui">
             <div class="recent-requests">
                 <div class="section-header">
-                    <h2 class="section-title">Notifications</h2>
-                    <button class="action-btn secondary">
-                        <i class="fas fa-check-circle"></i> Mark All as Read
-                    </button>
+                    <h2 class="section-title">System Log</h2>
                 </div>
-                <div class="notifications-list">
-                    <div class="notification-item unread">
-                        <div class="notification-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">New Document Request</div>
-                            <div class="notification-message">John Smith requested an official transcript</div>
-                            <div class="notification-time">2 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Student Record Updated</div>
-                            <div class="notification-message">Sarah Williams changed her program to Business Administration</div>
-                            <div class="notification-time">1 day ago</div>
+                <div class="system-log-list">
+                    <!-- Example log entries, replace with dynamic logs -->
+                    <div class="log-item">
+                        <div class="log-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="log-content">
+                            <div class="log-title">User Login</div>
+                            <div class="log-message">Registrar Admin logged in</div>
+                            <div class="log-time">Just now</div>
                         </div>
                     </div>
+                    <div class="log-item">
+                        <div class="log-icon"><i class="fas fa-check"></i></div>
+                        <div class="log-content">
+                            <div class="log-title">Request Approved</div>
+                            <div class="log-message">Request #REQ-2025-001 approved</div>
+                            <div class="log-time">5 minutes ago</div>
+                        </div>
+                    </div>
+                    <!-- Add more log entries dynamically -->
                 </div>
             </div>
+        </div>
+
+        <!-- Live Chat/Inquiries UI -->
+        <div id="liveChatUI" class="feature-ui">
+            <div style="display:flex;gap:0;height:600px;max-height:70vh;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden;">
+                <!-- Conversation List -->
+                <div id="chat-convo-list" style="width:260px;background:#f9f9f9;border-right:1px solid #eee;overflow-y:auto;">
+                    <div style="padding:18px 16px 10px;font-weight:600;font-size:17px;color:#8B0000;border-bottom:1px solid #eee;">Conversations</div>
+                    <div id="convo-list-items" style="display:flex;flex-direction:column;"></div>
+                </div>
+                <!-- Chat Messages -->
+                <div style="flex:1;display:flex;flex-direction:column;">
+                    <div id="chat-header" style="background:linear-gradient(135deg,#8B0000,#6B0000);color:#fff;padding:14px 20px;font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px;min-height:54px;">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="chat-header-title">Select a conversation</span>
+                    </div>
+                    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:18px 12px 0 12px;display:flex;flex-direction:column;gap:10px;background:#fff;"></div>
+                    <form id="chat-form" style="display:flex;gap:8px;padding:10px 12px 10px 12px;border-top:1px solid #eee;background:#fafafa;" autocomplete="off">
+                        <input id="chat-input" type="text" placeholder="Type your message..." style="flex:1;padding:10px 14px;border-radius:20px;border:1px solid #eee;background:#f9f9f9;outline:none;" autocomplete="off" disabled />
+                        <button type="submit" style="background:#8B0000;color:#fff;border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.2s;" disabled><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+            <script>
+            // --- Registrar Live Chat Logic ---
+            document.addEventListener('DOMContentLoaded', function() {
+                let selectedConvoId = null;
+                const convoList = document.getElementById('convo-list-items');
+                const chatHeaderTitle = document.getElementById('chat-header-title');
+                const chatMessages = document.getElementById('chat-messages');
+                const chatForm = document.getElementById('chat-form');
+                const chatInput = document.getElementById('chat-input');
+                const sendBtn = chatForm.querySelector('button');
+                const liveChatBadge = document.getElementById('liveChatBadge');
+
+                function fetchConversations() {
+                    fetch('/api/registrar/conversations', { headers: { 'Accept': 'application/json' } })
+                        .then(res => res.json())
+                        .then(data => {
+                            convoList.innerHTML = '';
+                            let unreadCount = 0;
+                            data.forEach(convo => {
+                                const item = document.createElement('div');
+                                item.className = 'convo-list-item';
+                                item.style = 'padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;background:' + (selectedConvoId===convo.id?'#f5e7c1':'#fff') + ';';
+                                item.innerHTML = `<div style='flex:1;'><div style='font-weight:600;color:#8B0000;'>${convo.requester_name||'Requester'}</div><div style='font-size:13px;color:#666;'>${convo.last_message?convo.last_message.substring(0,32):''}</div></div>` + (convo.unread_count>0?`<span style='background:#D4AF37;color:#8B0000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;'>${convo.unread_count}</span>`:'');
+                                item.onclick = () => selectConversation(convo.id, convo.requester_name);
+                                convoList.appendChild(item);
+                                if(convo.unread_count>0) unreadCount += convo.unread_count;
+                            });
+                            liveChatBadge.style.display = unreadCount>0?'inline-flex':'none';
+                            liveChatBadge.textContent = unreadCount;
+                        });
+                }
+
+                function selectConversation(convoId, requesterName) {
+                    selectedConvoId = convoId;
+                    chatHeaderTitle.textContent = requesterName ? `Chat with ${requesterName}` : 'Chat';
+                    chatInput.disabled = false;
+                    sendBtn.disabled = false;
+                    fetchMessages();
+                    fetchConversations();
+                }
+
+                function renderMessages(messages) {
+                    chatMessages.innerHTML = '';
+                    messages.forEach(msg => {
+                        const isMe = msg.sender_type === 'registrar';
+                        const bubble = document.createElement('div');
+                        bubble.style.maxWidth = '80%';
+                        bubble.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+                        bubble.style.background = isMe ? 'linear-gradient(135deg,#D4AF37,#F5E7C1)' : '#f1f1f1';
+                        bubble.style.color = isMe ? '#333' : '#333';
+                        bubble.style.borderRadius = isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
+                        bubble.style.padding = '10px 14px';
+                        bubble.style.marginBottom = '2px';
+                        bubble.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
+                        bubble.innerHTML = `<span style='font-size:15px;'>${msg.message}</span><br><span style='font-size:11px;color:#888;'>${new Date(msg.created_at).toLocaleString()}</span>`;
+                        chatMessages.appendChild(bubble);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+
+                function fetchMessages() {
+                    if(!selectedConvoId) return;
+                    fetch(`/api/registrar/conversations/${selectedConvoId}/messages`, { headers: { 'Accept': 'application/json' } })
+                        .then(res => res.json())
+                        .then(renderMessages);
+                }
+
+                chatForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if(!selectedConvoId) return;
+                    const msg = chatInput.value.trim();
+                    if(!msg) return;
+                    fetch(`/api/registrar/conversations/${selectedConvoId}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ message: msg })
+                    })
+                    .then(res => res.json())
+                    .then(() => {
+                        chatInput.value
+                        fetchMessages();
+                        fetchConversations();
+                    });
+                });
+
+                // Poll for new messages/convos every 10s
+                setInterval(() => {
+                    fetchConversations();
+                    if(selectedConvoId) fetchMessages();
+                }, 10000);
+
+                // Section navigation logic
+                document.querySelectorAll('.menu-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.querySelectorAll('.feature-ui').forEach(ui => ui.classList.remove('active'));
+                        const section = this.getAttribute('data-section');
+                        if(section) document.getElementById(section+"UI").classList.add('active');
+                        document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        if(section==='liveChat') {
+                            fetchConversations();
+                            chatHeaderTitle.textContent = 'Select a conversation';
+                            chatInput.value = '';
+                            chatInput.disabled = true;
+                            sendBtn.disabled = true;
+                            chatMessages.innerHTML = '';
+                        }
+                    });
+                });
+
+                // Initial fetch
+                fetchConversations();
+            });
+            </script>
         </div>
     </main>
     <script>
@@ -1622,15 +2052,15 @@
         }
         function updateAnalytics(analytics) {
             document.getElementById('pendingRequests').textContent = analytics.pending;
-            document.getElementById('inProcessRequests').textContent = analytics.processing;
+            document.getElementById('approvedRequests').textContent = analytics.approved;
             document.getElementById('completedRequests').textContent = analytics.completed;
             document.getElementById('rejectedRequests').textContent = analytics.rejected;
             document.getElementById('pendingRequestsProgress').textContent = analytics.pending;
-            document.getElementById('inProcessRequestsProgress').textContent = analytics.processing;
+            document.getElementById('approvedRequestsProgress').textContent = analytics.approved;
             document.getElementById('completedRequestsProgress').textContent = analytics.completed;
             document.getElementById('rejectedRequestsProgress').textContent = analytics.rejected;
             setCircularProgress('.progress-pending', (analytics.pending / 100) * 60);
-            setCircularProgress('.progress-processing', (analytics.processing / 100) * 60);
+            setCircularProgress('.progress-processing', (analytics.approved / 100) * 60);
             setCircularProgress('.progress-completed', (analytics.completed / 100) * 60);
             setCircularProgress('.progress-rejected', (analytics.rejected / 100) * 60);
         }
@@ -1724,25 +2154,19 @@
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const section = this.getAttribute('data-section');
-                
                 // Hide all feature UIs and show dashboard sections by default
                 document.querySelectorAll('.feature-ui').forEach(ui => {
                     ui.style.display = 'none';
                 });
                 document.getElementById('dashboardSections').classList.remove('hidden');
-                
                 // Update page title
                 const pageTitle = document.getElementById('pageTitle');
-                
                 // Handle each section
                 if (section === 'dashboard') {
-                    // Show dashboard
                     document.getElementById('dashboardSections').classList.remove('hidden');
                     pageTitle.textContent = 'Document Request Dashboard';
                 } else {
-                    // Hide dashboard and show the selected feature
                     document.getElementById('dashboardSections').classList.add('hidden');
-                    
                     if (section === 'documentRequests') {
                         document.getElementById('documentRequestsUI').style.display = 'block';
                         pageTitle.textContent = 'Document Requests Management';
@@ -1755,12 +2179,14 @@
                     } else if (section === 'reports') {
                         document.getElementById('reportsUI').style.display = 'block';
                         pageTitle.textContent = 'System Reports';
-                    } else if (section === 'notifications') {
-                        document.getElementById('notificationsUI').style.display = 'block';
-                        pageTitle.textContent = 'Notifications';
+                    } else if (section === 'systemLog') {
+                        document.getElementById('systemLogUI').style.display = 'block';
+                        pageTitle.textContent = 'System Log';
+                    } else if (section === 'liveChat') {
+                        document.getElementById('liveChatUI').style.display = 'block';
+                        pageTitle.textContent = 'Live Chat Inquiries';
                     }
                 }
-                
                 // Update active menu item
                 document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
@@ -1791,6 +2217,237 @@
                 this.classList.add('active');
             });
         });
+
+        // Student Records Department Logo Grid Logic
+        const departmentCards = document.querySelectorAll('.department-logo-card');
+        const departmentGrid = document.getElementById('departmentGrid');
+        const studentTableSection = document.getElementById('studentTableSection');
+        const studentTable = document.getElementById('studentTable');
+        const backToGridBtn = document.getElementById('backToGridBtn');
+        const programFilter = document.getElementById('programFilter');
+        const yearFilter = document.getElementById('yearFilter');
+        const studentSearchInput = document.getElementById('studentSearchInput');
+        let selectedDepartment = null;
+
+        // Custom Context Menu Logic
+        const logoContextMenu = document.getElementById('logoContextMenu');
+        const logoFileInput = document.getElementById('logoFileInput');
+        let contextTargetCard = null;
+
+        departmentCards.forEach(card => {
+            // Left click: show students
+            card.addEventListener('click', function() {
+                selectedDepartment = this.getAttribute('data-department');
+                departmentGrid.style.display = 'none';
+                studentTableSection.style.display = 'block';
+                programFilter.value = selectedDepartment;
+                filterStudentTable();
+            });
+            // Right click: show custom context menu
+            card.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                contextTargetCard = this;
+                logoContextMenu.style.display = 'block';
+                logoContextMenu.style.left = e.pageX + 'px';
+                logoContextMenu.style.top = e.pageY + 'px';
+            });
+        });
+
+        // Hide context menu on click elsewhere
+        document.addEventListener('click', function(e) {
+            if (!logoContextMenu.contains(e.target)) {
+                logoContextMenu.style.display = 'none';
+            }
+        });
+        // Hide context menu on scroll
+        window.addEventListener('scroll', function() {
+            logoContextMenu.style.display = 'none';
+        });
+
+        // Upload Logo button
+        document.getElementById('uploadLogoBtn').addEventListener('click', function() {
+            logoContextMenu.style.display = 'none';
+            if (contextTargetCard) {
+                logoFileInput.value = '';
+                logoFileInput.click();
+            }
+        });
+        // Update Logo button (for demo, same as upload)
+        document.getElementById('updateLogoBtn').addEventListener('click', function() {
+            logoContextMenu.style.display = 'none';
+            if (contextTargetCard) {
+                logoFileInput.value = '';
+                logoFileInput.click();
+            }
+        });
+        // Handle file input change
+        logoFileInput.addEventListener('change', function() {
+            if (this.files && this.files[0] && contextTargetCard) {
+                const department = contextTargetCard.getAttribute('data-department');
+                const formData = new FormData();
+                formData.append('department', department);
+                formData.append('logo', this.files[0]);
+                console.log('Uploading logo for:', department);
+                fetch('/registrar/department-logo', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Upload response:', data);
+                    if (data.success) {
+                        const img = contextTargetCard.querySelector('img');
+                        img.src = data.logo_url + '?t=' + new Date().getTime(); // bust cache
+                    } else {
+                        alert('Failed to upload logo.');
+                    }
+                })
+                .catch((e) => {
+                    alert('Failed to upload logo.');
+                    console.error(e);
+                });
+            }
+        });
+
+        backToGridBtn.addEventListener('click', function() {
+            studentTableSection.style.display = 'none';
+            departmentGrid.style.display = 'flex';
+            selectedDepartment = null;
+            programFilter.value = 'All Programs';
+            yearFilter.value = 'All Years';
+            studentSearchInput.value = '';
+            filterStudentTable();
+        });
+
+        // Filtering logic (search only)
+        function filterStudentTable() {
+            const search = studentSearchInput.value.toLowerCase();
+            Array.from(studentTable.querySelectorAll('tbody tr')).forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                let show = true;
+                if (selectedDepartment && row.getAttribute('data-program') !== selectedDepartment) show = false;
+                if (search && !rowText.includes(search)) show = false;
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        studentSearchInput.addEventListener('input', filterStudentTable);
+
+        // Real-time update for pending requests badge
+        function updatePendingRequestsBadge() {
+            fetch('/registrar/pending-count', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('pendingRequestsBadge');
+                const currentCount = parseInt(badge.textContent) || 0;
+                const newCount = data.pending;
+                
+                console.log('Pending requests count:', newCount);
+                
+                // Only update if count changed
+                if (currentCount !== newCount) {
+                    // Add animation class
+                    badge.classList.add('updating');
+                    
+                    // Update the count
+                    badge.textContent = newCount;
+                    
+                    // Hide badge if no pending requests, show if there are
+                    if (newCount > 0) {
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Remove animation class after animation completes
+                    setTimeout(() => {
+                        badge.classList.remove('updating');
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating pending count:', error);
+            });
+        }
+        
+        // Update immediately when page loads
+        updatePendingRequestsBadge();
+        
+        // Update every 30 seconds
+        setInterval(updatePendingRequestsBadge, 30000);
+
+        // Update badge when requests are approved/rejected
+        document.addEventListener('submit', function(e) {
+            if (e.target.matches('form[action*="/registrar/approve"], form[action*="/registrar/reject"]')) {
+                // Update the badge after a short delay to allow the form submission to complete
+                setTimeout(updatePendingRequestsBadge, 1000);
+            }
+        });
+
+        // Document Requests Management Filters
+        const docTable = document.getElementById('documentRequestsTable');
+        const docRows = Array.from(docTable.querySelectorAll('tbody tr'));
+        const statusTabs = document.querySelectorAll('.filter-tab');
+        const docTypeSelect = document.querySelector('.filter-select');
+        const dateInput = document.querySelector('.filter-date');
+        const docSearchInput = document.querySelector('.document-actions .search-bar input');
+
+        let activeStatus = 'all';
+
+        function filterDocRequests() {
+            const selectedType = docTypeSelect.value.toLowerCase();
+            const selectedDate = dateInput.value;
+            const search = docSearchInput.value.toLowerCase();
+            docRows.forEach(row => {
+                let show = true;
+                // Status filter
+                if (activeStatus !== 'all') {
+                    if (row.getAttribute('data-status') !== activeStatus) show = false;
+                }
+                // Document type filter
+                if (selectedType !== 'all document types') {
+                    const docs = row.getAttribute('data-documents');
+                    if (!docs.includes(selectedType)) show = false;
+                }
+                // Date filter
+                if (selectedDate) {
+                    if (row.getAttribute('data-date') !== selectedDate) show = false;
+                }
+                // Search filter
+                if (search) {
+                    if (!row.textContent.toLowerCase().includes(search)) show = false;
+                }
+                if (show) {
+                    row.classList.remove('filtered-out');
+                } else {
+                    row.classList.add('filtered-out');
+                }
+            });
+        }
+
+        statusTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                statusTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const label = this.textContent.trim().toLowerCase();
+                if (label === 'all requests') activeStatus = 'all';
+                else if (label === 'approved') activeStatus = 'approved';
+                else activeStatus = label;
+                filterDocRequests();
+            });
+        });
+        docTypeSelect.addEventListener('change', filterDocRequests);
+        dateInput.addEventListener('change', filterDocRequests);
+        docSearchInput.addEventListener('input', filterDocRequests);
     </script>
 </body>
 </html>

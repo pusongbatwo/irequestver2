@@ -8,6 +8,10 @@ use App\Http\Controllers\DocumentRequestController;
 use App\Http\Controllers\DocumentTrackingController;
 use App\Http\Controllers\LandingpageController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\RegistrarController;
+use App\Http\Controllers\CashierController;
+
+Route::post('/students/store', [RegistrarController::class, 'storeStudent'])->name('students.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -69,15 +73,20 @@ Route::post('/logout', function () {
 })->name('logout');
     
 Route::middleware(['auth'])->group(function () {
-    Route::get('/registrar/dashboard', function () {
-        return view('registrar.dashboard'); // Make sure this view exists
-    })->name('registrar.dashboard');
+    Route::get('/registrar/dashboard', [RegistrarController::class, 'registrarDashboard'])->name('registrar.dashboard');
+    Route::post('/registrar/approve/{id}', [RegistrarController::class, 'approve'])->name('registrar.approve');
+    Route::post('/registrar/reject/{id}', [RegistrarController::class, 'reject'])->name('registrar.reject');
 
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
-    Route::get('/cashier/dashboard', function () {
-        return view('cashier.dashboard');
-    })->name('cashier.dashboard');
+    Route::get('/cashier/dashboard', [CashierController::class, 'dashboard'])->name('cashier.dashboard');
+
+    Route::get('/registrar/pending-count', [RegistrarController::class, 'pendingCount']);
+
+    Route::post('/registrar/department-logo', [App\Http\Controllers\RegistrarController::class, 'updateLogo'])->name('registrar.updateLogo');
+
+    Route::post('/cashier/process-payment', [CashierController::class, 'processPayment'])->name('cashier.processPayment');
+
 });

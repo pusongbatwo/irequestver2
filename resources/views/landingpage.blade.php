@@ -1035,6 +1035,192 @@
                 font-size: 2rem;
             }
         }
+        
+        .doc-type-group {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            padding: 18px 18px 8px 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        .doc-type-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        
+        .doc-type-checkbox:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .doc-type-checkbox input[type="checkbox"] {
+            accent-color: var(--dark-red);
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+        }
+        
+        .doc-type-checkbox label {
+            flex: 1;
+            margin-left: 8px;
+            font-size: 1.08rem;
+            color: #333;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            background: #f7f7f7;
+            border-radius: 6px;
+            padding: 2px 8px;
+            gap: 4px;
+            min-width: 100px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        
+        .qty-btn {
+            background: var(--dark-red);
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .qty-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .doc-qty {
+            width: 38px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 28px;
+            background: #fff;
+            margin: 0 2px;
+            font-size: 1rem;
+        }
+        
+        /* Floating FAQs */
+        .floating-faqs-bottom {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            z-index: 9999;
+            background: #fff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            border-radius: 50px;
+            padding: 10px 22px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        
+        .floating-faqs-bottom:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+        }
+        
+        .faqs-icon-label i {
+            font-size: 22px;
+            color: #8B0000;
+            margin-right: 10px;
+        }
+        
+        .faqs-icon-label span {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        #faqsModal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.3);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #faqsModal .modal-content {
+            max-width: 500px;
+            width: 90vw;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            padding: 30px;
+        }
+        
+        #faqsModal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        
+        #faqsModal .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #8B0000;
+        }
+        
+        #faqsModal .close-button {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        #faqsModal .faq-container {
+            margin-top: 10px;
+        }
+        
+        #faqsModal .faq-item {
+            margin-bottom: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        #faqsModal .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        #faqsModal .faq-answer {
+            display: none;
+            color: #555;
+            margin-top: 8px;
+            font-size: 15px;
+        }
+        
+        #faqsModal .faq-item.active .faq-answer {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -1048,7 +1234,6 @@
         <div class="nav-links">
             <a href="#home"><i class="fas fa-home"></i> Home</a>
             <a href="#" id="trackDocumentBtn"><i class="fas fa-search"></i> Track Document</a>
-            <a href="#faqs"><i class="fas fa-question-circle"></i> FAQs</a>
         </div>
         
         <div class="hamburger" id="hamburger">
@@ -1156,116 +1341,72 @@
         </div>
     </section>
     
-    <!-- FAQ Section -->
-    <section class="faq-section" id="faqs">
-        <h2 class="section-title">Frequently Asked Questions</h2>
-        
-        <div class="faq-container">
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>How long does it take to process my document request?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Processing times vary depending on the type of document requested. Typically, requests are processed within 3-5 business days. You'll receive an email notification when your documents are ready.</p>
-                </div>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>What payment methods do you accept?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>We accept all major credit cards, PayPal, and bank transfers. Payment is required at the time of request submission.</p>
-                </div>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>Can I request multiple documents at once?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Yes, you can request multiple documents in a single request. Simply select all the documents you need during the request process.</p>
-                </div>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>How do I track my document request?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>After submitting your request, you'll receive a reference number via email. Use this number to track your request status through our tracking system.</p>
-                </div>
-            </div>
-            
-            <div class="faq-item">
-                <div class="faq-question">
-                    <span>What if I need to cancel my request?</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>Requests can be canceled within 24 hours of submission if processing hasn't begun. Please contact our support team immediately if you need to cancel your request.</p>
-                </div>
-            </div>
+    <!-- Floating FAQs Chat Icon -->
+    <div id="floatingFaqs" class="floating-faqs-bottom">
+        <div class="faqs-icon-label">
+            <i class="fas fa-comments"></i>
+            <span>FAQs</span>
         </div>
-    </section>
+    </div>
     
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-logo">
-                <div class="footer-logo-text">
-                    <img src="images/logo.png" alt="iRequest Logo" class="footer-logo-img">
-                    iRequest
-                </div>
-                <p class="footer-about">
-                    iRequest simplifies the process of requesting academic documents from educational institutions, saving you time and effort.
-                </p>
-                <div class="footer-social">
-                    <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
-                    <div class="social-icon"><i class="fab fa-twitter"></i></div>
-                    <div class="social-icon"><i class="fab fa-instagram"></i></div>
-                    <div class="social-icon"><i class="fab fa-linkedin-in"></i></div>
-                </div>
+    <!-- FAQs Modal -->
+    <div class="modal" id="faqsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h3>
+                <button class="close-button" id="closeFaqsModal">&times;</button>
             </div>
-            
-            <div class="footer-links">
-                <h3 class="footer-title">
-                    <i class="fas fa-link"></i> Quick Links
-                </h3>
-                <ul class="footer-list">
-                    <li><i class="fas fa-chevron-right"></i> <a href="#home">Home</a></li>
-                    <li><i class="fas fa-chevron-right"></i> <a href="#faqs">FAQs</a></li>
-                    <li><i class="fas fa-chevron-right"></i> <a href="#">Contact Us</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-contact">
-                <h3 class="footer-title">
-                    <i class="fas fa-envelope"></i> Contact Us
-                </h3>
-                <div class="contact-item">
-                    <i class="fas fa-map-marker-alt contact-icon"></i>
-                    <span>123 University Ave, Academic City, Philippines</span>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-phone-alt contact-icon"></i>
-                    <span>(+63) 912 345 6789</span>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-envelope contact-icon"></i>
-                    <span>support@irequest.edu</span>
+            <div class="modal-body">
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>How long does it take to process my document request?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Processing times vary depending on the type of document requested. Typically, requests are processed within 3-5 business days. You'll receive an email notification when your documents are ready.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>What payment methods do you accept?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We accept all major credit cards, PayPal, and bank transfers. Payment is required at the time of request submission.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Can I request multiple documents at once?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes, you can request multiple documents in a single request. Simply select all the documents you need during the request process.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>How do I track my document request?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>After submitting your request, you'll receive a reference number via email. Use this number to track your request status through our tracking system.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>What if I need to cancel my request?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Requests can be canceled within 24 hours of submission if processing hasn't begun. Please contact our support team immediately if you need to cancel your request.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="copyright">
-            <i class="far fa-copyright"></i> 2023 iRequest. All rights reserved.
-        </div>
-    </footer>
+    </div>
     
     <!-- Track Document Modal -->
     <div class="modal" id="trackDocumentModal">
@@ -1383,7 +1524,16 @@
                             <i class="fas fa-graduation-cap"></i> Course
                         </label>
                         <i class="fas fa-book input-icon"></i>
-                        <input type="text" id="course" class="form-input" required>
+                        <select id="course" class="form-input" required>
+                            <option value="">Select Course</option>
+                            <option value="BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY">BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY</option>
+                            <option value="BACHELOR OF SCIENCE IN ENTREPRENEURSHIP">BACHELOR OF SCIENCE IN ENTREPRENEURSHIP</option>
+                            <option value="BACHELOR OF SCIENCE IN CRIMINOLOGY">BACHELOR OF SCIENCE IN CRIMINOLOGY</option>
+                            <option value="BACHELOR OF ELEMENTARY EDUCATION">BACHELOR OF ELEMENTARY EDUCATION</option>
+                            <option value="BACHELOR OF EARLY CHILDHOOD EDUCATION">BACHELOR OF EARLY CHILDHOOD EDUCATION</option>
+                            <option value="BACHELOR OF SCIENCE IN HOSPITALITY MANAGEMENT">BACHELOR OF SCIENCE IN HOSPITALITY MANAGEMENT</option>
+                            <option value="BACHELOR OF PUBLIC ADMINISTRATION">BACHELOR OF PUBLIC ADMINISTRATION</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="firstName" class="form-label">
@@ -1406,6 +1556,19 @@
                         <i class="fas fa-signature input-icon"></i>
                         <input type="text" id="lastName" class="form-input" required>
                     </div>
+                    <div class="form-group">
+                        <label for="yearLevel" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Year Level (Optional)
+                        </label>
+                        <i class="fas fa-calendar input-icon"></i>
+                        <select id="yearLevel" class="form-input">
+                            <option value="">Select Year Level</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <!-- Step 2: Contact Information -->
@@ -1415,21 +1578,27 @@
                             <i class="fas fa-map-marker-alt"></i> Province
                         </label>
                         <i class="fas fa-map input-icon"></i>
-                        <input type="text" id="province" class="form-input" required>
+                        <select id="province" class="form-input" required>
+                            <option value="">Select Province</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="city" class="form-label">
                             <i class="fas fa-city"></i> City
                         </label>
                         <i class="fas fa-building input-icon"></i>
-                        <input type="text" id="city" class="form-input" required>
+                        <select id="city" class="form-input" required>
+                            <option value="">Select City/Municipality</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="barangay" class="form-label">
                             <i class="fas fa-map-pin"></i> Barangay
                         </label>
                         <i class="fas fa-map-marked-alt input-icon"></i>
-                        <input type="text" id="barangay" class="form-input" required>
+                        <select id="barangay" class="form-input" required>
+                            <option value="">Select Barangay</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="mobile" class="form-label">
@@ -1450,18 +1619,56 @@
                 <!-- Step 3: Document Information -->
                 <div class="form-step" data-step="3">
                     <div class="form-group">
-                        <label for="documentType" class="form-label">
-                            <i class="fas fa-file"></i> Document Type
+                        <label class="form-label">
+                            <i class="fas fa-file"></i> Select Document Type(s)
                         </label>
-                        <i class="fas fa-file-alt input-icon"></i>
-                        <select id="documentType" class="form-input" required>
-                            <option value="">Select Document Type</option>
-                            <option value="Transcript of Records">Transcript of Records</option>
-                            <option value="Diploma">Diploma</option>
-                            <option value="Certificate of Enrollment">Certificate of Enrollment</option>
-                            <option value="Certificate of Graduation">Certificate of Graduation</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <div class="doc-type-group" id="documentTypesGroup">
+                            <div class="doc-type-checkbox">
+                                <input type="checkbox" id="doc-tor" name="document_types" value="Transcript of Records">
+                                <label for="doc-tor">Transcript of Records</label>
+                                <div class="quantity-selector">
+                                    <button type="button" class="qty-btn minus" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" min="1" value="1" class="doc-qty" data-doc="Transcript of Records" disabled>
+                                    <button type="button" class="qty-btn plus" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="doc-type-checkbox">
+                                <input type="checkbox" id="doc-diploma" name="document_types" value="Diploma">
+                                <label for="doc-diploma">Diploma</label>
+                                <div class="quantity-selector">
+                                    <button type="button" class="qty-btn minus" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" min="1" value="1" class="doc-qty" data-doc="Diploma" disabled>
+                                    <button type="button" class="qty-btn plus" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="doc-type-checkbox">
+                                <input type="checkbox" id="doc-coe" name="document_types" value="Certificate of Enrollment">
+                                <label for="doc-coe">Certificate of Enrollment</label>
+                                <div class="quantity-selector">
+                                    <button type="button" class="qty-btn minus" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" min="1" value="1" class="doc-qty" data-doc="Certificate of Enrollment" disabled>
+                                    <button type="button" class="qty-btn plus" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="doc-type-checkbox">
+                                <input type="checkbox" id="doc-cog" name="document_types" value="Certificate of Graduation">
+                                <label for="doc-cog">Certificate of Graduation</label>
+                                <div class="quantity-selector">
+                                    <button type="button" class="qty-btn minus" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" min="1" value="1" class="doc-qty" data-doc="Certificate of Graduation" disabled>
+                                    <button type="button" class="qty-btn plus" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="doc-type-checkbox">
+                                <input type="checkbox" id="doc-other" name="document_types" value="Other">
+                                <label for="doc-other">Other</label>
+                                <div class="quantity-selector">
+                                    <button type="button" class="qty-btn minus" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" min="1" value="1" class="doc-qty" data-doc="Other" disabled>
+                                    <button type="button" class="qty-btn plus" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="purpose" class="form-label">
@@ -1501,6 +1708,76 @@
         </div>
     </div>
     
+    <div class="modal" id="summaryModal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-list"></i> Review Your Request</h3>
+                <button class="close-button" id="closeSummaryModal">&times;</button>
+            </div>
+            <div class="modal-body" id="summaryContent">
+                <!-- Summary will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button secondary-button" id="editRequestBtn">
+                    <i class="fas fa-edit"></i> Edit Request
+                </button>
+                <button class="modal-button primary-button" id="finalSubmitBtn">
+                    <i class="fas fa-paper-plane"></i> Submit Final Request
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <div class="footer-logo-text">
+                    <img src="images/logo.png" alt="iRequest Logo" class="footer-logo-img">
+                    iRequest
+                </div>
+                <p class="footer-about">
+                    iRequest simplifies the process of requesting academic documents from educational institutions, saving you time and effort.
+                </p>
+                <div class="footer-social">
+                    <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
+                    <div class="social-icon"><i class="fab fa-twitter"></i></div>
+                    <div class="social-icon"><i class="fab fa-instagram"></i></div>
+                    <div class="social-icon"><i class="fab fa-linkedin-in"></i></div>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3 class="footer-title">
+                    <i class="fas fa-link"></i> Quick Links
+                </h3>
+                <ul class="footer-list">
+                    <li><i class="fas fa-chevron-right"></i> <a href="#home">Home</a></li>
+                    <li><i class="fas fa-chevron-right"></i> <a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h3 class="footer-title">
+                    <i class="fas fa-envelope"></i> Contact Us
+                </h3>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt contact-icon"></i>
+                    <span>123 University Ave, Academic City, Philippines</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt contact-icon"></i>
+                    <span>(+63) 912 345 6789</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope contact-icon"></i>
+                    <span>support@irequest.edu</span>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <i class="far fa-copyright"></i> 2023 iRequest. All rights reserved.
+        </div>
+    </footer>
+    
     <script>
         // Navbar Scroll Effect
         window.addEventListener('scroll', function() {
@@ -1527,15 +1804,6 @@
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
                 hamburger.innerHTML = '<i class="fas fa-bars"></i>';
-            });
-        });
-        
-        // FAQ Accordion
-        const faqItems = document.querySelectorAll('.faq-item');
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
-            question.addEventListener('click', () => {
-                item.classList.toggle('active');
             });
         });
         
@@ -1698,135 +1966,286 @@
         submitButton.addEventListener('click', function() {
             if (!validateStep(currentStep)) return;
 
-            // Create confirmation modal HTML
-            const confirmationModal = `
-                <div class="modal" id="confirmationModal" style="display:flex;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 class="modal-title"><i class="fas fa-check-circle"></i> Confirm Submission</h3>
-                            <button class="close-button" id="closeConfirmationModal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <h4>Please review your information:</h4>
-                            <div class="summary-section">
-                                <h5><i class="fas fa-user"></i> Personal Information</h5>
-                                <p><strong>Student ID:</strong> ${document.getElementById('studentId').value}</p>
-                                <p><strong>Name:</strong> ${document.getElementById('firstName').value} ${document.getElementById('middleName').value} ${document.getElementById('lastName').value}</p>
-                                <p><strong>Course:</strong> ${document.getElementById('course').value}</p>
-                            </div>
-                            <div class="summary-section">
-                                <h5><i class="fas fa-address-book"></i> Contact Information</h5>
-                                <p><strong>Address:</strong> ${document.getElementById('barangay').value}, ${document.getElementById('city').value}, ${document.getElementById('province').value}</p>
-                                <p><strong>Mobile:</strong> ${document.getElementById('mobile').value}</p>
-                                <p><strong>Email:</strong> ${document.getElementById('email').value}</p>
-                            </div>
-                            <div class="summary-section">
-                                <h5><i class="fas fa-file-alt"></i> Document Information</h5>
-                                <p><strong>Document Type:</strong> ${document.getElementById('documentType').value}</p>
-                                <p><strong>Purpose:</strong> ${document.getElementById('purpose').value}</p>
-                                ${document.getElementById('specialInstructions').value ? `<p><strong>Special Instructions:</strong> ${document.getElementById('specialInstructions').value}</p>` : ''}
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="modal-button secondary-button" id="cancelSubmission">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
-                            <button class="modal-button primary-button" id="confirmSubmission">
-                                <i class="fas fa-check"></i> Confirm Submission
-                            </button>
-                        </div>
-                    </div>
+            // Gather all form data
+            const docTypes = [];
+            document.querySelectorAll('#documentTypesGroup input[type="checkbox"]:checked').forEach(checkbox => {
+                const qty = checkbox.parentElement.querySelector('.doc-qty').value;
+                docTypes.push({ type: checkbox.value, quantity: qty });
+            });
+
+            // Build summary HTML
+            let docSummary = '';
+            docTypes.forEach(doc => {
+                docSummary += `<p><strong>${doc.type}:</strong> ${doc.quantity} copy/copies</p>`;
+            });
+
+            const summaryHtml = `
+                <div class="summary-section">
+                    <h5><i class="fas fa-user"></i> Personal Information</h5>
+                    <p><strong>Student ID:</strong> ${document.getElementById('studentId').value}</p>
+                    <p><strong>Name:</strong> ${document.getElementById('firstName').value} ${document.getElementById('middleName').value} ${document.getElementById('lastName').value}</p>
+                    <p><strong>Course:</strong> ${document.getElementById('course').value}</p>
+                </div>
+                <div class="summary-section">
+                    <h5><i class="fas fa-address-book"></i> Contact Information</h5>
+                    <p><strong>Address:</strong> ${document.getElementById('barangay').value}, ${document.getElementById('city').value}, ${document.getElementById('province').value}</p>
+                    <p><strong>Mobile:</strong> ${document.getElementById('mobile').value}</p>
+                    <p><strong>Email:</strong> ${document.getElementById('email').value}</p>
+                </div>
+                <div class="summary-section">
+                    <h5><i class="fas fa-file-alt"></i> Document Information</h5>
+                    ${docSummary}
+                    <p><strong>Purpose:</strong> ${document.getElementById('purpose').value}</p>
+                    ${document.getElementById('specialInstructions').value ? `<p><strong>Special Instructions:</strong> ${document.getElementById('specialInstructions').value}</p>` : ''}
                 </div>
             `;
 
-            // Insert the modal into the DOM
-            document.body.insertAdjacentHTML('beforeend', confirmationModal);
+            document.getElementById('summaryContent').innerHTML = summaryHtml;
+            document.getElementById('summaryModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
+        });
 
-            // Close confirmation modal handlers
-            document.getElementById('closeConfirmationModal').addEventListener('click', closeConfirmationModal);
-            document.getElementById('cancelSubmission').addEventListener('click', closeConfirmationModal);
+        // Edit Request button
+        document.getElementById('editRequestBtn').addEventListener('click', function() {
+            document.getElementById('summaryModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
 
-            // Confirm submission handler
-            document.getElementById('confirmSubmission').addEventListener('click', async function() {
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        // Final Submit button
+        document.getElementById('finalSubmitBtn').addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
-                try {
-                    const response = await fetch('/submit-request', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({
-                            student_id: document.getElementById('studentId').value,
-                            course: document.getElementById('course').value,
-                            first_name: document.getElementById('firstName').value,
-                            middle_name: document.getElementById('middleName').value,
-                            last_name: document.getElementById('lastName').value,
-                            province: document.getElementById('province').value,
-                            city: document.getElementById('city').value,
-                            barangay: document.getElementById('barangay').value,
-                            mobile: document.getElementById('mobile').value,
-                            email: document.getElementById('email').value,
-                            document_type: document.getElementById('documentType').value,
-                            purpose: document.getElementById('purpose').value,
-                            special_instructions: document.getElementById('specialInstructions').value
-                        })
-                    });
-
-                    const result = await response.text();
-                    
-                    closeConfirmationModal();
-                    requestFormModal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-
-                    if (response.ok) {
-                        Swal.fire({
-                            title: "Success!",
-                            text: "Your request has been submitted successfully.",
-                            icon: "success",
-                            confirmButtonText: "OK"
-                        });
-                    } else {
-                        throw new Error(result.message || "Submission failed");
-                    }
-                } catch (error) {
-                    Swal.fire({
-                        title: "Error!",
-                        text: error.message,
-                        icon: "error",
-                        confirmButtonText: "OK"
-                    });
-                }
+            // Gather all form data again
+            const docTypes = [];
+            document.querySelectorAll('#documentTypesGroup input[type="checkbox"]:checked').forEach(checkbox => {
+                const qty = checkbox.parentElement.querySelector('.doc-qty').value;
+                docTypes.push({ type: checkbox.value, quantity: qty });
             });
 
-            function closeConfirmationModal() {
-                document.getElementById('confirmationModal').remove();
-                document.body.style.overflow = 'auto';
-            }
-        });
+            try {
+                const response = await fetch('/submit-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        student_id: document.getElementById('studentId').value,
+                        course: document.getElementById('course').value,
+                        first_name: document.getElementById('firstName').value,
+                        middle_name: document.getElementById('middleName').value,
+                        last_name: document.getElementById('lastName').value,
+                        province: document.getElementById('province').value,
+                        city: document.getElementById('city').value,
+                        barangay: document.getElementById('barangay').value,
+                        mobile: document.getElementById('mobile').value,
+                        email: document.getElementById('email').value,
+                        document_types: docTypes,
+                        purpose: document.getElementById('purpose').value,
+                        special_instructions: document.getElementById('specialInstructions').value
+                    })
+                });
 
-        // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
-            if (event.target === trackDocumentModal) {
-                trackDocumentModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-            if (event.target === termsModal) {
-                termsModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-            if (event.target === requestFormModal) {
+                const result = await response.text();
+
+                document.getElementById('summaryModal').style.display = 'none';
                 requestFormModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+
+                if (response.ok) {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Your request has been submitted successfully.",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+                } else {
+                    throw new Error(result.message || "Submission failed");
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: "Error!",
+                    text: error.message,
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
             }
         });
+
+        // Close summary modal with X
+        document.getElementById('closeSummaryModal').addEventListener('click', function() {
+            document.getElementById('summaryModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        // PSGC API base URL
+        const PSGC_API = "https://psgc.gitlab.io/api";
+
+        // Elements
+        const provinceSelect = document.getElementById('province');
+        const citySelect = document.getElementById('city');
+        const barangaySelect = document.getElementById('barangay');
+
+        // Helper: Show loading or error
+        function setSelectLoading(select, message = 'Loading...') {
+            select.innerHTML = `<option value="">${message}</option>`;
+            select.disabled = true;
+        }
+        function setSelectError(select, message = 'Failed to load') {
+            select.innerHTML = `<option value="">${message}</option>`;
+            select.disabled = true;
+        }
+        function setSelectReady(select) {
+            select.disabled = false;
+        }
+
+        // Fetch and populate provinces
+        setSelectLoading(provinceSelect);
+        fetch(`${PSGC_API}/provinces/`)
+            .then(res => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            })
+            .then(provinces => {
+                provinces.sort((a, b) => a.name.localeCompare(b.name));
+                provinceSelect.innerHTML = '<option value="">Select Province</option>';
+                provinces.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.name;
+                    option.setAttribute('data-code', province.code);
+                    option.textContent = province.name;
+                    provinceSelect.appendChild(option);
+                });
+                setSelectReady(provinceSelect);
+            })
+            .catch(() => {
+                setSelectError(provinceSelect, 'Failed to load provinces');
+            });
+
+        // When province changes, fetch cities/municipalities
+        provinceSelect.addEventListener('change', function() {
+            setSelectLoading(citySelect);
+            setSelectLoading(barangaySelect, 'Select Barangay');
+            if (!this.value) {
+                citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+                barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                citySelect.disabled = false;
+                barangaySelect.disabled = false;
+                return;
+            }
+
+            const selectedOption = this.options[this.selectedIndex];
+            const provinceCode = selectedOption.getAttribute('data-code');
+
+            fetch(`${PSGC_API}/provinces/${provinceCode}/cities-municipalities/`)
+                .then(res => {
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(cities => {
+                    cities.sort((a, b) => a.name.localeCompare(b.name));
+                    citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.name;
+                        option.setAttribute('data-code', city.code);
+                        option.textContent = city.name;
+                        citySelect.appendChild(option);
+                    });
+                    setSelectReady(citySelect);
+                })
+                .catch(() => {
+                    setSelectError(citySelect, 'Failed to load cities');
+                });
+        });
+
+        // When city changes, fetch barangays
+        citySelect.addEventListener('change', function() {
+            setSelectLoading(barangaySelect);
+            if (!this.value) {
+                barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                barangaySelect.disabled = false;
+                return;
+            }
+
+            const selectedOption = this.options[this.selectedIndex];
+            const cityCode = selectedOption.getAttribute('data-code');
+
+            fetch(`${PSGC_API}/cities-municipalities/${cityCode}/barangays/`)
+                .then(res => {
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(barangays => {
+                    barangays.sort((a, b) => a.name.localeCompare(b.name));
+                    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+                    barangays.forEach(barangay => {
+                        const option = document.createElement('option');
+                        option.value = barangay.name;
+                        option.textContent = barangay.name;
+                        barangaySelect.appendChild(option);
+                    });
+                    setSelectReady(barangaySelect);
+                })
+                .catch(() => {
+                    setSelectError(barangaySelect, 'Failed to load barangays');
+                });
+        });
+
+        document.querySelectorAll('#documentTypesGroup input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const qtyInput = this.parentElement.querySelector('.doc-qty');
+                const minusBtn = this.parentElement.querySelector('.qty-btn.minus');
+                const plusBtn = this.parentElement.querySelector('.qty-btn.plus');
+                const quantitySelector = this.parentElement.querySelector('.quantity-selector');
+                qtyInput.disabled = !this.checked;
+                minusBtn.disabled = !this.checked;
+                plusBtn.disabled = !this.checked;
+                if (this.checked && !qtyInput.value) qtyInput.value = 1;
+            });
+        });
+
+        // Plus/minus button logic
+        document.querySelectorAll('.qty-btn.plus').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const qtyInput = this.parentElement.querySelector('.doc-qty');
+                qtyInput.value = parseInt(qtyInput.value) + 1;
+            });
+        });
+        document.querySelectorAll('.qty-btn.minus').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const qtyInput = this.parentElement.querySelector('.doc-qty');
+                if (parseInt(qtyInput.value) > 1) {
+                    qtyInput.value = parseInt(qtyInput.value) - 1;
+                }
+            });
+        });
+        
+        // Floating FAQs Modal Logic
+        const floatingFaqs = document.getElementById('floatingFaqs');
+        const faqsModal = document.getElementById('faqsModal');
+        const closeFaqsModal = document.getElementById('closeFaqsModal');
+        if (floatingFaqs) {
+            floatingFaqs.addEventListener('click', function() {
+                faqsModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+        }
+        if (closeFaqsModal) {
+            closeFaqsModal.addEventListener('click', function() {
+                faqsModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+        }
+        
+        // FAQ Accordion in Modal
+        faqsModal.querySelectorAll('.faq-item').forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                item.classList.toggle('active');
+            });
+        });
     </script>
-
-
-
-
 </body>
-</html> 
+</html>

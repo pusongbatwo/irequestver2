@@ -34,7 +34,125 @@
             margin: 30px auto;
             padding: 0 20px;
         }
-        
+    /* Everything above is CSS only */
+    </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+    <!-- ...existing dashboard content... -->
+    <div class="dashboard-container">
+        <!-- ...existing dashboard content... -->
+    </div>
+
+    <!-- Live Chat Widget -->
+    <div id="chat-widget" style="position:fixed;bottom:30px;right:30px;z-index:9999;width:350px;max-width:95vw;">
+        <div id="chat-header" style="background:linear-gradient(135deg,#8B0000,#6B0000);color:#fff;padding:12px 18px;border-radius:15px 15px 0 0;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+            <i class="fas fa-comments"></i>
+            <span style="font-weight:600;flex:1;">Chat with Registrar</span>
+            <i id="chat-toggle" class="fas fa-chevron-down"></i>
+        </div>
+        <div id="chat-body" style="background:#fff;border-radius:0 0 15px 15px;box-shadow:0 8px 24px rgba(0,0,0,0.10);padding:0 0 10px 0;display:none;flex-direction:column;height:400px;max-height:60vh;">
+            <div id="chat-messages" style="flex:1;overflow-y:auto;padding:18px 12px 0 12px;display:flex;flex-direction:column;gap:10px;"></div>
+            <form id="chat-form" style="display:flex;gap:8px;padding:10px 12px 0 12px;">
+                <input id="chat-input" type="text" placeholder="Type your message..." style="flex:1;padding:10px 14px;border-radius:20px;border:1px solid #eee;background:#f9f9f9;outline:none;" autocomplete="off" />
+                <button type="submit" style="background:#8B0000;color:#fff;border:none;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.2s;"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- Chat Widget Logic ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const documentId = "{{ $document->id }}";
+            const chatHeader = document.getElementById('chat-header');
+            const chatBody = document.getElementById('chat-body');
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            let chatOpen = false;
+
+            chatHeader.addEventListener('click', function() {
+                chatOpen = !chatOpen;
+                chatBody.style.display = chatOpen ? 'flex' : 'none';
+                chatToggle.className = chatOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+                if (chatOpen) fetchMessages();
+            });
+
+            function renderMessages(messages) {
+                chatMessages.innerHTML = '';
+                messages.forEach(msg => {
+                    const isMe = msg.sender_type === 'requester';
+                    const bubble = document.createElement('div');
+                    bubble.style.maxWidth = '80%';
+                    bubble.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+                    bubble.style.background = isMe ? 'linear-gradient(135deg,#D4AF37,#F5E7C1)' : '#f1f1f1';
+                    bubble.style.color = isMe ? '#333' : '#333';
+                    bubble.style.borderRadius = isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
+                    bubble.style.padding = '10px 14px';
+                    bubble.style.marginBottom = '2px';
+                    bubble.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
+                    bubble.innerHTML = `<span style='font-size:15px;'>${msg.message}</span><br><span style='font-size:11px;color:#888;'>${new Date(msg.created_at).toLocaleString()}</span>`;
+                    chatMessages.appendChild(bubble);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function fetchMessages() {
+                fetch(`/api/document-requests/${documentId}/messages`, {
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(renderMessages);
+            }
+
+
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const msg = chatInput.value.trim();
+                if (!msg) return;
+
+                // Optimistically show the message in the UI
+                const now = new Date();
+                const tempMsg = {
+                    sender_type: 'requester',
+                    message: msg,
+                    created_at: now.toISOString()
+                };
+                // Add to UI immediately
+                renderMessages([...Array.from(chatMessages.children).map(div => ({
+                    sender_type: div.style.alignSelf === 'flex-end' ? 'requester' : 'registrar',
+                    message: div.querySelector('span').innerText,
+                    created_at: div.querySelectorAll('span')[1].innerText // not used, just for mapping
+                })), tempMsg]);
+
+                chatInput.value = '';
+
+                fetch(`/api/document-requests/${documentId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ message: msg })
+                })
+                .then(res => res.json())
+                .then(() => {
+                    // After successful send, fetch the latest messages from server
+                    fetchMessages();
+                })
+                .catch(() => {
+                    // On error, optionally show a warning or revert the optimistic message
+                    fetchMessages();
+                });
+            });
+
+            // Optionally, poll for new messages every 10s when open
+            setInterval(() => { if (chatOpen) fetchMessages(); }, 10000);
+        });
+    </script>
+    <style>
         .dashboard-header {
             background: linear-gradient(135deg, var(--dark-red), #6B0000);
             color: var(--white);
@@ -342,7 +460,7 @@
     background-color: #c9302c;
 }
 
-    </style>
+</style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -461,34 +579,34 @@
             <div class="details-grid">
                 <div class="detail-item">
                     <span class="detail-label">Student ID:</span>
-                    <span class="detail-value">{{ $document->personalInformation->student_id }}</span>
+                    <span class="detail-value">{{ $document->student_id }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Full Name:</span>
                     <span class="detail-value">
-                        {{ $document->personalInformation->first_name }}
-                        {{ $document->personalInformation->middle_name }}
-                        {{ $document->personalInformation->last_name }}
+                        {{ $document->first_name }}
+                        {{ $document->middle_name }}
+                        {{ $document->last_name }}
                     </span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Course:</span>
-                    <span class="detail-value">{{ $document->personalInformation->course }}</span>
+                    <span class="detail-value">{{ $document->course }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Email:</span>
-                    <span class="detail-value">{{ $document->personalInformation->contact->email }}</span>
+                    <span class="detail-value">{{ $document->email }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Phone:</span>
-                    <span class="detail-value">{{ $document->personalInformation->contact->mobile }}</span>
+                    <span class="detail-value">{{ $document->mobile }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Address:</span>
                     <span class="detail-value">
-                        {{ $document->personalInformation->contact->barangay }}, 
-                        {{ $document->personalInformation->contact->city }}, 
-                        {{ $document->personalInformation->contact->province }}
+                        {{ $document->barangay }}, 
+                        {{ $document->city }}, 
+                        {{ $document->province }}
                     </span>
                 </div>
             </div>
