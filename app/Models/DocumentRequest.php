@@ -14,7 +14,7 @@ class DocumentRequest extends Model
         'student_id', 'first_name', 'middle_name', 'last_name', 'course',
         'province', 'city', 'barangay', 'mobile_number', 'email',
         'purpose', 'special_instructions', 'status', 'payment_status',
-        'request_date', 'reference_number'
+        'request_date', 'reference_number', 'year_level', 'alumni_school_year'
     ];
 
     public $timestamps = false; // If you only have created_at, not updated_at

@@ -3,16 +3,73 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use App\Models\DocumentRequest;
 use Illuminate\Support\Facades\DB;
 use App\Models\DepartmentLogo;
-
 use App\Mail\RequestApprovedMail;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RequestRejectedMail;
+use App\Helpers\SystemLogHelper;
 
 class RegistrarController extends Controller
 {
+    // AJAX endpoint for Verify Modal
+    public function verifyModal($id)
+    {
+        $request = \App\Models\DocumentRequest::with('requestedDocuments')->find($id);
+        if (!$request) {
+            return response()->json(['found' => false, 'request_id' => $id]);
+        }
+
+        // Try to match student by student_id or name
+        $student = null;
+        if ($request->student_id) {
+            $student = \App\Models\Student::where('student_id', $request->student_id)->first();
+        }
+        if (!$student && $request->first_name && $request->last_name) {
+            $student = \App\Models\Student::where('first_name', $request->first_name)
+                ->where('last_name', $request->last_name)
+                ->first();
+        }
+
+        if ($student) {
+            // Get available documents for this student (simulate: all types allowed)
+            $availableDocs = [];
+            // If you have a real relation, fetch from there. For now, allow all requested docs.
+            foreach ($request->requestedDocuments as $doc) {
+                $availableDocs[] = $doc->document_type;
+            }
+            if (count($availableDocs) > 0) {
+                return response()->json([
+                    'found' => true,
+                    'full_name' => trim($student->first_name . ' ' . ($student->middle_name ? $student->middle_name . ' ' : '') . $student->last_name),
+                    'documents' => $availableDocs,
+                    'request_id' => $id
+                ]);
+            }
+        }
+        // No student or no matching docs
+        return response()->json(['found' => false, 'request_id' => $id]);
+    }
+    public function verify($id)
+    {
+        $request = DocumentRequest::findOrFail($id);
+        $request->status = 'processing';
+        $request->save();
+        // Log verification
+        SystemLogHelper::log('request_received', 'Document request #' . $request->id . ' verified by registrar.');
+        return back()->with('success', 'Request verified.');
+    }
+
+    public function complete($id)
+    {
+        $request = DocumentRequest::findOrFail($id);
+        $request->status = 'completed';
+        $request->save();
+        // Log completion
+        SystemLogHelper::log('completed', 'Document request #' . $request->id . ' marked as completed by registrar.');
+        return back()->with('success', 'Request marked as completed.');
+    }
     public function storeStudent(Request $request)
     {
         $validated = $request->validate([
@@ -26,6 +83,9 @@ class RegistrarController extends Controller
         ]);
 
         \App\Models\Student::create($validated);
+
+        // Log student added
+        SystemLogHelper::log('student_added', 'Student record for ' . $validated['first_name'] . ' ' . $validated['last_name'] . ' added by registrar.');
 
         return redirect()->back()->with('student_added', 'Student record added successfully!');
     }
@@ -64,7 +124,10 @@ class RegistrarController extends Controller
         // Load students from students table, grouped by program and year_level
         $students = \App\Models\Student::all()->groupBy(['program', 'year_level']);
 
-        return view('registrar.dashboard', compact('dashboardRequests', 'requests', 'analytics', 'departmentLogos', 'students'));
+        // Load system logs
+        $systemLogs = \App\Models\SystemLog::orderBy('created_at', 'desc')->take(50)->get();
+
+        return view('registrar.dashboard', compact('dashboardRequests', 'requests', 'analytics', 'departmentLogos', 'students', 'systemLogs'));
     }
 
     public function approve($id)
@@ -83,6 +146,9 @@ class RegistrarController extends Controller
         // Send email
         Mail::to($request->email)->send(new RequestApprovedMail($request));
 
+        // Log approval
+        SystemLogHelper::log('approved', 'Request #' . $request->id . ' approved by registrar.');
+
         return back()->with('success', 'Request approved and email sent.');
     }
 
@@ -91,7 +157,12 @@ class RegistrarController extends Controller
         $request = DocumentRequest::findOrFail($id);
         $request->status = 'rejected';
         $request->save();
-        return back()->with('success', 'Request rejected.');
+        // Send rejection email
+        Mail::to($request->email)->send(new RequestRejectedMail($request));
+
+        // Log rejection
+        SystemLogHelper::log('rejected', 'Request #' . $request->id . ' rejected by registrar.');
+        return back()->with('success', 'Request rejected and email sent.');
     }
 
     public function pendingCount()

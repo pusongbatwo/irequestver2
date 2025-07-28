@@ -1326,16 +1326,17 @@
                             <td>
                                 @if($req->status == 'pending')
                                     <div class="action-btn-group">
-                                        <form action="{{ route('registrar.approve', $req->id) }}" method="POST" style="display:inline;">
+                                        <button type="button" class="action-btn approve-btn verify-btn" 
+                                            data-request-id="{{ $req->id }}" 
+                                            data-student-id="{{ $req->student_id ?? '' }}" 
+                                            data-student-name="{{ $req->first_name ?? '' }} {{ $req->last_name ?? '' }}"
+                                            title="Verify">
+                                            <i class="fas fa-user-check"></i> Verify
+                                        </button>
+                                        <form action="{{ route('registrar.complete', $req->id) }}" method="POST" style="display:inline;">
                                             @csrf
-                                            <button type="submit" class="action-btn approve-btn" title="Approve">
-                                                <i class="fas fa-check"></i> Approve
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('registrar.reject', $req->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="action-btn reject-btn" title="Reject">
-                                                <i class="fas fa-times"></i> Reject
+                                            <button type="submit" class="action-btn reject-btn" title="Complete">
+                                                <i class="fas fa-check-double"></i> Complete
                                             </button>
                                         </form>
                                     </div>
@@ -1409,16 +1410,17 @@
                             <td><span class="status-badge status-{{ strtolower($req->status) }}">{{ ucfirst($req->status) }}</span></td>
                             <td>
                                 @if($req->status == 'pending')
-                                    <form action="{{ route('registrar.approve', $req->id) }}" method="POST" style="display:inline;">
+                                    <button type="button" class="action-btn approve-btn verify-btn" 
+                                        data-request-id="{{ $req->id }}" 
+                                        data-student-id="{{ $req->student_id ?? '' }}" 
+                                        data-student-name="{{ $req->first_name ?? '' }} {{ $req->last_name ?? '' }}"
+                                        title="Verify">
+                                        <i class="fas fa-user-check"></i> Verify
+                                    </button>
+                                    <form action="{{ route('registrar.complete', $req->id) }}" method="POST" style="display:inline;">
                                         @csrf
-                                        <button type="submit" class="action-btn approve-btn" title="Approve">
-                                            <i class="fas fa-check"></i> Approve
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('registrar.reject', $req->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="action-btn reject-btn" title="Reject">
-                                            <i class="fas fa-times"></i> Reject
+                                        <button type="submit" class="action-btn reject-btn" title="Complete">
+                                            <i class="fas fa-check-double"></i> Complete
                                         </button>
                                     </form>
                                 @endif
@@ -1442,7 +1444,6 @@
                 </div>
                 <!-- Department Logo Grid -->
                 <div id="departmentGrid" style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; margin-bottom: 2rem;">
-                    <!-- Updated departments with new images and names -->
                     @php
                         $departments = [
                             ["name" => "BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY", "img" => "/images/it.png"],
@@ -1455,36 +1456,47 @@
                         ];
                     @endphp
                     @foreach($departments as $dept)
-                    <div class="department-logo-card" data-department="{{ $dept['name'] }}" style="text-align: center; cursor: pointer; width: 140px;">
+                    <div class="department-logo-card" data-department="{{ $dept['name'] }}" style="text-align: center; cursor: pointer; width: 180px; padding-bottom: 1rem;">
                         <img src="{{ $dept['img'] }}" alt="{{ $dept['name'] }}" class="department-logo-img">
                         <div style="margin-top: 0.5rem; font-weight: 600; font-size: 13px;">{{ $dept['name'] }}</div>
                     </div>
                     @endforeach
-<!-- Student Records Modal -->
-<div id="studentRecordsModal" class="import-modal" style="display:none;z-index:2100;">
-    <div class="import-modal-content" style="border-top:6px solid #8B0000;max-width:800px;width:90%;">
-        <div class="import-modal-header">
-            <h3 class="import-modal-title" id="studentRecordsModalTitle" style="color:#8B0000;">Student Records</h3>
-            <button class="import-modal-close" onclick="closeStudentRecordsModal()">&times;</button>
-        </div>
-        <div class="import-modal-body" style="max-height:60vh;overflow-y:auto;">
-            <table style="width:100%;border-collapse:collapse;">
-                <thead>
-                    <tr style="background:#f5f5f5;">
-                        <th style="padding:10px 8px;text-align:left;">Student ID</th>
-                        <th style="padding:10px 8px;text-align:left;">Full Name</th>
-                        <th style="padding:10px 8px;text-align:left;">Year Level</th>
-                        <th style="padding:10px 8px;text-align:left;">Status</th>
-                        <th style="padding:10px 8px;text-align:left;">Email</th>
-                        <th style="padding:10px 8px;text-align:left;">Contact</th>
-                    </tr>
-                </thead>
-                <tbody id="studentRecordsModalBody">
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                </div>
+                <!-- Student Records Table (always visible) -->
+                <div id="studentRecordsTableSection" style="display:none;">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+                        <label for="schoolYearFilter" style="font-weight:600;color:#8B0000;">School Year:</label>
+                        <select id="schoolYearFilter" class="filter-select" style="min-width:140px; border:1.5px solid #8B0000; border-radius:8px; padding:6px 12px; font-size:1rem;">
+                            @php
+                                $startYear = 2022;
+                                $currentYear = date('Y');
+                                $schoolYears = [];
+                                for ($y = $startYear; $y <= $currentYear; $y++) {
+                                    $schoolYears[] = $y . '-' . ($y+1);
+                                }
+                            @endphp
+                            @foreach(array_reverse($schoolYears) as $sy)
+                                <option value="{{ $sy }}">{{ $sy }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div style="max-height:60vh;overflow-y:auto;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#f5f5f5;">
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Program</th>
+                                    <th>Year Level</th>
+                                    <th>School Year</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentRecordsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
                 <!-- Custom Context Menu for Department Logo -->
                 <div id="logoContextMenu">
@@ -1603,62 +1615,99 @@
 <!-- The import modal already exists as #importModal -->
 
 <script>
-    // Student Records Modal Logic
-    function openStudentRecordsModal(department) {
-        // Set modal title
-        document.getElementById('studentRecordsModalTitle').textContent = department + ' - Student Records';
-        // Get students for department from blade variable
-        let students = @json($students);
+  // Student Records Table Logic (robust show/hide and filtering)
+document.addEventListener('DOMContentLoaded', function() {
+    let students = @json($students);
+    let selectedDepartment = null;
+    let selectedSchoolYear = document.getElementById('schoolYearFilter').value;
+    const tableSection = document.getElementById('studentRecordsTableSection');
+    const tableBody = document.getElementById('studentRecordsTableBody');
+    const departmentGrid = document.getElementById('departmentGrid');
+    const schoolYearFilter = document.getElementById('schoolYearFilter');
+    const backBtn = document.getElementById('backToGridBtn');
+
+
+    // Render table for selected department, optionally filtered by school year
+    function renderTable(filterBySchoolYear = true) {
+        if (!selectedDepartment) {
+            tableSection.style.display = 'none';
+            return;
+        }
+        tableSection.style.display = 'block';
+        tableBody.innerHTML = '';
         let records = [];
-        if (students[department]) {
-            // Flatten year_level groups
-            Object.keys(students[department]).forEach(year => {
-                students[department][year].forEach(student => {
-                    records.push(student);
+        if (students[selectedDepartment]) {
+            if (filterBySchoolYear) {
+                // Filter by selected school year
+                records = students[selectedDepartment][selectedSchoolYear] || [];
+            } else {
+                // Show all records for all school years in this department
+                Object.values(students[selectedDepartment]).forEach(arr => {
+                    if (Array.isArray(arr)) records = records.concat(arr);
                 });
-            });
+            }
         }
-        // Render table rows
-        let tbody = document.getElementById('studentRecordsModalBody');
-        tbody.innerHTML = '';
-        if (records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#8B0000;font-weight:600;">No student records found for this program.</td></tr>';
-        } else {
-            records.forEach(student => {
-                tbody.innerHTML += `<tr>
-                    <td style='padding:8px;'>${student.student_id}</td>
-                    <td style='padding:8px;'>${student.first_name} ${student.middle_name ? student.middle_name + ' ' : ''}${student.last_name}</td>
-                    <td style='padding:8px;'>${student.year_level}</td>
-                    <td style='padding:8px;'>${student.status}</td>
-                    <td style='padding:8px;'>${student.email ?? '-'}</td>
-                    <td style='padding:8px;'>${student.contact ?? '-'}</td>
-                </tr>`;
-            });
+        if (!records || records.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#8B0000;font-weight:600;">No student records found for this program.</td></tr>';
+            return;
         }
-        document.getElementById('studentRecordsModal').style.display = 'flex';
-    }
-    function closeStudentRecordsModal() {
-        document.getElementById('studentRecordsModal').style.display = 'none';
-    }
-    // Attach click event to department logos
-    document.querySelectorAll('.department-logo-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const department = this.getAttribute('data-department');
-            openStudentRecordsModal(department);
+        records.forEach(function(student) {
+            tableBody.innerHTML += `<tr>
+                <td>${student.student_id || ''}</td>
+                <td>${student.first_name || ''} ${student.last_name || ''}</td>
+                <td>${student.program || ''}</td>
+                <td>${student.year_level || ''}</td>
+                <td>${student.school_year || ''}</td>
+            </tr>`;
         });
-    });
-    // Modal logic for Add Student
-    function openAddStudentModal() {
-        document.getElementById('addStudentModal').style.display = 'flex';
     }
-    function closeAddStudentModal() {
-        document.getElementById('addStudentModal').style.display = 'none';
+
+    // Department selection
+    if (departmentGrid) {
+        departmentGrid.querySelectorAll('.department-logo-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                selectedDepartment = card.getAttribute('data-department');
+                // Reset school year filter to latest
+                if (schoolYearFilter.options.length > 0) {
+                    schoolYearFilter.selectedIndex = 0;
+                    selectedSchoolYear = schoolYearFilter.value;
+                }
+                renderTable(false); // Show all records for department
+                tableSection.style.display = 'block';
+            });
+        });
     }
-    document.getElementById('openAddStudentModalBtn').addEventListener('click', openAddStudentModal);
-    // Modal logic for Import Student
-    document.getElementById('openImportStudentModalBtn').addEventListener('click', function() {
-        document.getElementById('importModal').style.display = 'flex';
+
+    // School year filter
+    schoolYearFilter.addEventListener('change', function() {
+        selectedSchoolYear = this.value;
+        renderTable(true); // Filter by school year
     });
+
+    // Back button logic
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            tableSection.style.display = 'none';
+            selectedDepartment = null;
+        });
+    }
+
+    // Initial state: table hidden
+    tableSection.style.display = 'none';
+});
+
+// Modal logic for Add Student
+function openAddStudentModal() {
+    document.getElementById('addStudentModal').style.display = 'flex';
+}
+function closeAddStudentModal() {
+    document.getElementById('addStudentModal').style.display = 'none';
+}
+document.getElementById('openAddStudentModalBtn').addEventListener('click', openAddStudentModal);
+// Modal logic for Import Student
+document.getElementById('openImportStudentModalBtn').addEventListener('click', function() {
+    document.getElementById('importModal').style.display = 'flex';
+});
 </script>
             </div>
         </div>
@@ -1832,24 +1881,33 @@
                     <h2 class="section-title">System Log</h2>
                 </div>
                 <div class="system-log-list">
-                    <!-- Example log entries, replace with dynamic logs -->
-                    <div class="log-item">
-                        <div class="log-icon"><i class="fas fa-info-circle"></i></div>
-                        <div class="log-content">
-                            <div class="log-title">User Login</div>
-                            <div class="log-message">Registrar Admin logged in</div>
-                            <div class="log-time">Just now</div>
+                    @if(isset($systemLogs) && count($systemLogs) > 0)
+                        @foreach($systemLogs as $log)
+                        <div class="log-item">
+                            <div class="log-icon">
+                                @if($log->type === 'login')
+                                    <i class="fas fa-sign-in-alt" style="color:#1E40AF;"></i>
+                                @elseif($log->type === 'request_received')
+                                    <i class="fas fa-inbox" style="color:#92400E;"></i>
+                                @elseif($log->type === 'approved')
+                                    <i class="fas fa-check-circle" style="color:#065F46;"></i>
+                                @elseif($log->type === 'rejected')
+                                    <i class="fas fa-times-circle" style="color:#B71C1C;"></i>
+                                @elseif($log->type === 'student_added')
+                                    <i class="fas fa-user-plus" style="color:#8B0000;"></i>
+                                @else
+                                    <i class="fas fa-info-circle"></i>
+                                @endif
+                            </div>
+                            <div class="log-content">
+                                <div style="font-weight:600;">{{ $log->message }}</div>
+                                <div style="font-size:12px;color:#888;">{{ $log->created_at->format('Y-m-d H:i:s') }}</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="log-item">
-                        <div class="log-icon"><i class="fas fa-check"></i></div>
-                        <div class="log-content">
-                            <div class="log-title">Request Approved</div>
-                            <div class="log-message">Request #REQ-2025-001 approved</div>
-                            <div class="log-time">5 minutes ago</div>
-                        </div>
-                    </div>
-                    <!-- Add more log entries dynamically -->
+                        @endforeach
+                    @else
+                        <div class="empty-state">No system log entries yet.</div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -2450,4 +2508,7 @@
         docSearchInput.addEventListener('input', filterDocRequests);
     </script>
 </body>
+    <!-- Verify Modal Placeholder -->
+    <div id="verifyModal" class="import-modal" style="display:none;"></div>
+    <script src="/js/registrar-verify-modal.js"></script>
 </html>

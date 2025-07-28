@@ -26,6 +26,14 @@ class DocumentRequestController extends Controller
 
     public function store(Request $request)
     {
+        // Prevent duplicate student_id
+        if (\App\Models\DocumentRequest::where('student_id', $request->student_id)->exists()) {
+            $message = 'A request for this Student ID already exists.';
+            if ($request->expectsJson() || $request->isJson()) {
+                return response()->json(['success' => false, 'message' => $message], 409);
+            }
+            return back()->with('error', $message);
+        }
         Log::info('DocumentRequestController@store called', $request->all()); // Debug log
         $validated = $request->validate([
             'student_id' => 'required|string|max:50',
@@ -43,7 +51,7 @@ class DocumentRequestController extends Controller
             'document_types' => 'required|array|min:1',
             'document_types.*.type' => 'required|string',
             'document_types.*.quantity' => 'required|integer|min:1',
-            'year_level' => 'nullable|string|max:20',
+            'year_level' => 'required|string|max:20',
         ]);
         
         $docRequest = null;
@@ -66,7 +74,7 @@ class DocumentRequestController extends Controller
                     'status' => 'pending',
                     'payment_status' => 'unpaid',
                     'request_date' => now(),
-                    'year_level' => $validated['year_level'] ?? null,
+                    'year_level' => $validated['year_level'],
                 ]);
                 foreach ($validated['document_types'] as $doc) {
                     RequestedDocument::create([

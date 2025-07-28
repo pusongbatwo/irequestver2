@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('document_requests', function (Blueprint $table) {
-            $table->string('year_level', 20)->nullable();
+            $table->string('year_level', 20);
         });
     }
 

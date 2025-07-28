@@ -73,9 +73,13 @@ Route::post('/logout', function () {
 })->name('logout');
     
 Route::middleware(['auth'])->group(function () {
+    Route::get('/registrar/verify-modal/{id}', [RegistrarController::class, 'verifyModal']);
     Route::get('/registrar/dashboard', [RegistrarController::class, 'registrarDashboard'])->name('registrar.dashboard');
+    Route::post('/registrar/verify/{id}', [RegistrarController::class, 'verify'])->name('registrar.verify');
     Route::post('/registrar/approve/{id}', [RegistrarController::class, 'approve'])->name('registrar.approve');
     Route::post('/registrar/reject/{id}', [RegistrarController::class, 'reject'])->name('registrar.reject');
+    Route::post('/registrar/backup', [RegistrarController::class, 'backup'])->name('registrar.backup');
+    Route::post('/registrar/complete/{id}', [RegistrarController::class, 'complete'])->name('registrar.complete');
 
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
