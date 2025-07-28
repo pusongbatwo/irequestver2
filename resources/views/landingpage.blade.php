@@ -1569,6 +1569,16 @@
                             <option value="4th Year">4th Year</option>
                             <option value="Alumni">Alumni</option>
                         </select>
+                        <div id="schoolYearsGroup" style="margin-top:10px;">
+                            <label for="schoolYears" class="form-label"><i class="fas fa-calendar"></i> School Years Enrolled</label>
+                            <select id="schoolYears" class="form-input" multiple size="4">
+                                <option value="2021-2022">2021-2022</option>
+                                <option value="2022-2023">2022-2023</option>
+                                <option value="2023-2024">2023-2024</option>
+                                <option value="2024-2025">2024-2025</option>
+                                <option value="2025-2026">2025-2026</option>
+                            </select>
+                        </div>
                         <div id="alumniSchoolYearGroup" style="display:none;margin-top:10px;">
                             <label for="alumniSchoolYear" class="form-label"><i class="fas fa-calendar"></i> School Year Graduated</label>
                             <select id="alumniSchoolYear" class="form-input">
@@ -1883,12 +1893,25 @@
         // Show/hide alumni school year dropdown
         document.getElementById('yearLevel').addEventListener('change', function() {
             var alumniGroup = document.getElementById('alumniSchoolYearGroup');
+            var schoolYearsGroup = document.getElementById('schoolYearsGroup');
+            if (this.value) {
+                schoolYearsGroup.style.display = 'block';
+            } else {
+                schoolYearsGroup.style.display = 'none';
+                // Optionally clear selection
+                Array.from(document.getElementById('schoolYears').options).forEach(opt => opt.selected = false);
+            }
             if (this.value === 'Alumni') {
                 alumniGroup.style.display = 'block';
             } else {
                 alumniGroup.style.display = 'none';
                 document.getElementById('alumniSchoolYear').value = '';
             }
+        });
+
+        // Hide school years group by default on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('schoolYearsGroup').style.display = 'none';
         });
 
         // Form Step Navigation
@@ -1995,23 +2018,39 @@
                 docTypes.push({ type: checkbox.value, quantity: qty });
             });
 
+
+            // School years enrolled (multi-select)
+            const schoolYearsSelect = document.getElementById('schoolYears');
+            const schoolYears = Array.from(schoolYearsSelect.selectedOptions).map(opt => opt.value);
+            let alumniYear = '';
+            if(document.getElementById('yearLevel').value === 'Alumni') {
+                alumniYear = document.getElementById('alumniSchoolYear').value;
+            }
+
             // Build summary HTML
             let docSummary = '';
             docTypes.forEach(doc => {
                 docSummary += `<p><strong>${doc.type}:</strong> ${doc.quantity} copy/copies</p>`;
             });
 
-            let alumniYear = '';
-            if(document.getElementById('yearLevel').value === 'Alumni') {
-                alumniYear = document.getElementById('alumniSchoolYear').value;
+            let schoolYearsHtml = '';
+            if (schoolYears.length > 0) {
+                schoolYearsHtml = `<p><strong>School Years Enrolled:</strong> ${schoolYears.join(', ')}</p>`;
             }
+            let alumniYearHtml = '';
+            if (alumniYear) {
+                alumniYearHtml = `<p><strong>Year Graduated:</strong> ${alumniYear}</p>`;
+            }
+
             const summaryHtml = `
                 <div class="summary-section">
                     <h5><i class="fas fa-user"></i> Personal Information</h5>
                     <p><strong>Student ID:</strong> ${document.getElementById('studentId').value}</p>
                     <p><strong>Name:</strong> ${document.getElementById('firstName').value} ${document.getElementById('middleName').value} ${document.getElementById('lastName').value}</p>
                     <p><strong>Course:</strong> ${document.getElementById('course').value}</p>
-                    <p><strong>Year Level:</strong> ${document.getElementById('yearLevel').value}${alumniYear ? ' ('+alumniYear+')' : ''}</p>
+                    <p><strong>Year Level:</strong> ${document.getElementById('yearLevel').value}</p>
+                    ${schoolYearsHtml}
+                    ${alumniYearHtml}
                 </div>
                 <div class="summary-section">
                     <h5><i class="fas fa-address-book"></i> Contact Information</h5>
@@ -2064,7 +2103,8 @@
                         middle_name: document.getElementById('middleName').value,
                         last_name: document.getElementById('lastName').value,
                         year_level: document.getElementById('yearLevel').value,
-                        alumni_school_year: document.getElementById('yearLevel').value === 'Alumni' ? document.getElementById('alumniSchoolYear').value : '',
+                        school_years: Array.from(document.getElementById('schoolYears').selectedOptions).map(opt => opt.value),
+                        alumni_school_year: (document.getElementById('yearLevel').value === 'Alumni') ? document.getElementById('alumniSchoolYear').value : '',
                         province: document.getElementById('province').value,
                         city: document.getElementById('city').value,
                         barangay: document.getElementById('barangay').value,

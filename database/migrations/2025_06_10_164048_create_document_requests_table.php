@@ -13,7 +13,7 @@ class CreateDocumentRequestsTable extends Migration
      */
     public function up()
     {
-        Schema::createIfNotExists('document_requests', function (Blueprint $table) {
+        Schema::create('document_requests', function (Blueprint $table) {
             // ...
         
             $table->id();
@@ -36,6 +36,7 @@ class CreateDocumentRequestsTable extends Migration
             $table->timestamp('created_at')->useCurrent();
             $table->string('reference_number', 100)->nullable();
             $table->string('year_level', 20)->nullable();
+            $table->json('school_years')->nullable();
         });
     }
 

@@ -43,14 +43,23 @@ class DocumentTrackingController extends Controller
             'amount_received' => 'required|numeric|min:0',
         ]);
 
-        $documentRequest = DocumentRequest::where('reference_number', $validated['reference_number'])->first();
+        $documentRequest = DocumentRequest::where('reference_number', $validated['reference_number'])->with('requestedDocuments')->first();
 
         if (!$documentRequest) {
             return response()->json(['success' => false, 'message' => 'Document request not found.'], 404);
         }
 
-        // Update payment status
+        // Calculate amount due
+        $fees = config('services.document_fees', []);
+        $amountDue = 0;
+        foreach ($documentRequest->requestedDocuments as $doc) {
+            $amountDue += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
+        }
+        // Update payment status and status
         $documentRequest->payment_status = 'paid';
+        $documentRequest->status = 'completed';
+        $documentRequest->paid_at = now();
+        $documentRequest->amount_paid = $amountDue;
         $documentRequest->save();
 
         // Send payment confirmation email

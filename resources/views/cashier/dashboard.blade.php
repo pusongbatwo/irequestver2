@@ -830,7 +830,7 @@
                 <li class="menu-item">
                     <a href="#" class="menu-link" data-section="transactions">
                         <i class="fas fa-exchange-alt menu-icon"></i>
-                        <span class="menu-text">Transactions</span>
+                        <span class="menu-text">Cashier Logs</span>
                     </a>
                 </li>
             </ul>
@@ -934,14 +934,35 @@
                 <div class="section-header">
                     <h2 class="section-title">Document Type Breakdown</h2>
                 </div>
-                <div class="progress-container">
+                <div class="progress-container" style="display: flex; flex-direction: row; gap: 0.7rem; justify-content: flex-start; align-items: flex-end; height: 170px;">
                     @foreach($document_type_counts as $type => $count)
-                    <div class="progress-item">
-                        <div class="progress-label">{{ $type }}</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: {{ $maxCount > 0 ? number_format(($count / $maxCount) * 100, 2, '.', '') : '0' }}%; background-color: {{ $barColors[$type] ?? '#888' }};"></div>
+                    @php
+                        $redShades = [
+                            '#7f1d1d', // very dark red
+                            '#b91c1c', // dark red
+                            '#dc2626', // strong red
+                            '#ef4444', // medium red
+                            '#f87171', // light red
+                            '#fca5a5', // very light red
+                        ];
+                        $barIndex = $loop->index % count($redShades);
+                        $barColor = $redShades[$barIndex];
+                        // Use solid color for each bar, no gradient
+                    @endphp
+                    <div class="progress-item" style="display: flex; flex-direction: column; align-items: center; min-width: 80px; justify-content: flex-end; height: 100%;">
+                        <div class="progress-value" style="margin-bottom: 0.5rem; font-size: 1.1em; font-weight: 700; color: #c62828; letter-spacing: 0.5px;">{{ $count }}</div>
+                        <div class="progress-bar" style="width: 40px; height: 90px; background: #ffebee; border-radius: 12px; display: flex; align-items: flex-end; box-sizing: border-box; box-shadow: 0 2px 8px rgba(183,28,28,0.08);">
+                            <div class="progress-fill" style="width: 100%; border-radius: 10px; height: {{ $maxCount > 0 ? number_format(($count / $maxCount) * 100, 2, '.', '') : '0' }}%; background-color: {{ $barColor }}; box-shadow: 0 2px 8px {{ $barColor }}33;"></div>
                         </div>
-                        <div class="progress-value">{{ $count }}</div>
+                        <div class="progress-label" style="margin-top: 0.5rem; font-weight: bold; color: #b71c1c; letter-spacing: 0.5px; font-size: 13px; text-align: center; min-height: 32px; display: flex; align-items: flex-start; justify-content: center; width: 100%; white-space: pre-line;">
+                            @php
+                                $labelParts = explode(' ', $type, 2);
+                            @endphp
+                            <span style="width: 100%; text-align: center; align-self: center; display: flex; flex-direction: column;">
+                                <span style="display: block;">{{ $labelParts[0] }}</span>
+                                <span style="display: block;">{{ $labelParts[1] ?? '' }}</span>
+                            </span>
+                        </div>
                     </div>
                     @endforeach
                 </div>
@@ -964,13 +985,13 @@
                             <th>Student</th>
                             <th>Document Types</th>
                             <th>Amount</th>
-                            <th>Status</th>
+                            <th>Payment Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($document_requests as $req)
-                        <tr>
+                        @foreach($document_requests->take(5) as $req)
+                        <tr data-reference="{{ $req->reference_number }}">
                             <td class="request-id">{{ $req->reference_number }}</td>
                             <td>{{ $req->first_name }} {{ $req->last_name }}</td>
                             <td>
@@ -987,7 +1008,14 @@
                                 @endphp
                                 ₱{{ number_format($amount, 2) }}
                             </td>
-                            <td><span class="status-badge status-paid">Approved</span></td>
+                            <td>
+                                @php
+                                    $paymentStatus = $req->payment_status;
+                                    $statusLabel = $paymentStatus === 'paid' ? 'Paid' : 'Unpaid';
+                                    $statusClass = $paymentStatus === 'paid' ? 'status-paid' : 'status-unpaid';
+                                @endphp
+                                <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                            </td>
                             <td>
                                 <button class="action-btn"><i class="fas fa-receipt"></i></button>
                                 <button class="action-btn"><i class="fas fa-print"></i></button>
@@ -1045,132 +1073,98 @@
 
         <!-- Document Requests UI -->
         <div id="documentRequestsUI" class="feature-ui">
-            <div class="document-requests">
-                <div class="section-header">
+            <div class="document-requests" style="position: relative; display: flex; flex-direction: column; height: 480px; min-height: 320px;">
+                <div class="section-header" style="position: sticky; top: 0; z-index: 2; background: var(--light); border-radius: 12px 12px 0 0;">
                     <h2 class="section-title">Document Requests</h2>
-                   
                 </div>
-                
-                <div class="request-filters">
+                <div class="request-filters" style="position: sticky; top: 3.5rem; z-index: 2; background: var(--light); padding-bottom: 0.5rem; margin-bottom: 0;">
                     <select class="filter-select">
                         <option>All Statuses</option>
                         <option>Pending</option>
                         <option>Paid</option>
                         <option>Cancelled</option>
                     </select>
-                    
                     <select class="filter-select">
                         <option>All Document Types</option>
                         <option>Transcript</option>
                         <option>Diploma</option>
                         <option>Certificate</option>
                     </select>
-                    
                     <input type="date" class="filter-select" placeholder="Filter by date">
                 </div>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Reference #</th>
-                            <th>Student</th>
-                            <th>Document Types</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($document_requests as $req)
-                        <tr>
-                            <td class="request-id">{{ $req->reference_number }}</td>
-                            <td>{{ $req->first_name }} {{ $req->last_name }}</td>
-                            <td>
-                                @foreach($req->requestedDocuments as $doc)
-                                    {{ $doc->document_type }} ({{ $doc->quantity }})@if(!$loop->last), @endif
-                                @endforeach
-                            </td>
-                            <td>
-                                @php
-                                    $amount = 0;
-                                    foreach ($req->requestedDocuments as $doc) {
-                                        $amount += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
-                                    }
-                                @endphp
-                                ₱{{ number_format($amount, 2) }}
-                            </td>
-                            <td><span class="status-badge status-paid">Approved</span></td>
-                            <td>
-                                <button class="action-btn"><i class="fas fa-receipt"></i></button>
-                                <button class="action-btn"><i class="fas fa-print"></i></button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div style="flex: 1 1 auto; overflow-y: auto; min-height: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="position: sticky; top: 0; z-index: 3; background: var(--light);">
+                                <th>Reference #</th>
+                                <th>Student</th>
+                                <th>Document Types</th>
+                                <th>Amount</th>
+                                <th>Payment Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($document_requests as $req)
+                            <tr data-reference="{{ $req->reference_number }}">
+                                <td class="request-id">{{ $req->reference_number }}</td>
+                                <td>{{ $req->first_name }} {{ $req->last_name }}</td>
+                                <td>
+                                    @foreach($req->requestedDocuments as $doc)
+                                        {{ $doc->document_type }} ({{ $doc->quantity }})@if(!$loop->last), @endif
+                                    @endforeach
+                                </td>
+                                <td>
+                                    @php
+                                        $amount = 0;
+                                        foreach ($req->requestedDocuments as $doc) {
+                                            $amount += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
+                                        }
+                                    @endphp
+                                    ₱{{ number_format($amount, 2) }}
+                                </td>
+                                <td>
+                                    @php
+                                        $paymentStatus = $req->payment_status;
+                                        $statusLabel = $paymentStatus === 'paid' ? 'Paid' : 'Unpaid';
+                                        $statusClass = $paymentStatus === 'paid' ? 'status-paid' : 'status-unpaid';
+                                    @endphp
+                                    <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                                </td>
+                                <td>
+                                    <button class="action-btn"><i class="fas fa-receipt"></i></button>
+                                    <button class="action-btn"><i class="fas fa-print"></i></button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Transactions UI -->
+        <!-- Cashier Logs UI -->
         <div id="transactionsUI" class="feature-ui">
             <div class="transactions-list">
                 <div class="section-header">
-                    <h2 class="section-title">Recent Transactions</h2>
+                    <h2 class="section-title">Cashier Logs</h2>
                     <div class="search-bar" style="width: 300px;">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" placeholder="Search transactions...">
+                        <input type="text" placeholder="Search cashier logs..." id="cashierLogSearchInput">
                     </div>
                 </div>
-                
-                <div class="transaction-item">
-                    <div class="transaction-details">
-                        <div><strong>#DOC-2023-1027</strong> - Official Transcript</div>
-                        <div>Michael Johnson - 05/17/2023 10:30 AM</div>
-                    </div>
-                    <div class="transaction-amount">
-                    ₱15.00
-                    </div>
-                </div>
-                
-                <div class="transaction-item">
-                    <div class="transaction-details">
-                        <div><strong>#DOC-2023-1026</strong> - Diploma Copy</div>
-                        <div>Sarah Williams - 05/16/2023 2:15 PM</div>
-                    </div>
-                    <div class="transaction-amount">
-                    ₱25.00
-                    </div>
-                </div>
-                
-                <div class="transaction-item">
-                    <div class="transaction-details">
-                        <div><strong>#DOC-2023-1025</strong> - Enrollment Verification</div>
-                        <div>Robert Brown - 05/15/2023 9:45 AM</div>
-                    </div>
-                    <div class="transaction-amount">
-                    ₱10.00
-                    </div>
-                </div>
-                
-                <div class="transaction-item">
-                    <div class="transaction-details">
-                        <div><strong>#DOC-2023-1024</strong> - Course Completion Cert</div>
-                        <div>Emily Davis - 05/14/2023 11:20 AM</div>
-                    </div>
-                    <div class="transaction-amount">
-                    ₱20.00
-                    </div>
-                </div>
-                
-                <div class="transaction-item">
-                    <div class="transaction-details">
-                        <div><strong>#DOC-2023-1023</strong> - Official Transcript</div>
-                        <div>David Wilson - 05/13/2023 3:30 PM</div>
-                    </div>
-                    <div class="transaction-amount">
-                    ₱15.00
-                    </div>
-                </div>
+                @if($cashier_logs->isEmpty())
+                    <div style="padding: 2rem; text-align: center; color: #888;">No logs found.</div>
+                @else
+                    @foreach($cashier_logs as $log)
+                        <div class="transaction-item">
+                            <div class="transaction-details">
+                                <div><strong>{{ ucfirst(str_replace('_', ' ', $log->type)) }}</strong> - {{ $log->message }}</div>
+                                <div style="font-size: 13px; color: #888;">{{ $log->created_at->format('M d, Y h:i A') }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
             </div>
         </div>
 
@@ -1403,7 +1397,7 @@
                     pageTitle.textContent = 'Document Requests';
                 } else if (sectionId === 'transactions') {
                     document.getElementById('transactionsUI').style.display = 'block';
-                    pageTitle.textContent = 'Transactions';
+                    pageTitle.textContent = 'System Logs';
                 } else if (sectionId === 'dailySummary') {
                     document.getElementById('dailySummaryUI').style.display = 'block';
                     pageTitle.textContent = 'Daily Summary';
@@ -1479,10 +1473,13 @@
                 searchResults.innerHTML = '';
                 return;
             }
+            // Exclude requests with payment_status 'paid'
             const matches = approvedRequests.filter(req =>
-                req.reference_number.toLowerCase().includes(query) ||
-                req.student_id?.toLowerCase().includes(query) ||
-                (req.first_name + ' ' + req.last_name).toLowerCase().includes(query)
+                req.payment_status !== 'paid' && (
+                    req.reference_number.toLowerCase().includes(query) ||
+                    req.student_id?.toLowerCase().includes(query) ||
+                    (req.first_name + ' ' + req.last_name).toLowerCase().includes(query)
+                )
             );
             if (matches.length === 0) {
                 searchResults.style.display = 'none';
@@ -1562,8 +1559,25 @@
             .then(data => {
                 if (data.success) {
                     alert('Payment processed and email sent!');
+                    // Update status in Document Requests table if present
+                    const row = document.querySelector(`#documentRequestsUI tr[data-reference='${selectedRequest.reference_number}']`);
+                    if (row) {
+                        const statusCell = row.querySelector('td:nth-child(5) span');
+                        if (statusCell) {
+                            statusCell.textContent = 'Paid';
+                            statusCell.className = 'status-badge status-paid';
+                        }
+                    }
+                    // Clear all Process Payment sidebar input fields
+                    referenceInput.value = '';
+                    studentNameInput.value = '';
+                    documentTypeInput.value = '';
+                    amountDueInput.value = '';
+                    amountReceivedInput.value = '';
+                    changeInput.value = '₱0.00';
+                    selectedRequest = null;
                     // Optionally update UI or reload
-                    window.location.reload();
+                    // window.location.reload();
                 } else {
                     alert('Failed to process payment: ' + (data.message || 'Unknown error'));
                 }

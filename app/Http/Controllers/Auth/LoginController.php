@@ -28,15 +28,16 @@ class LoginController extends Controller
             // Log registrar login
             if ($user->role === 'registrar') {
                 \App\Helpers\SystemLogHelper::log('login', 'Registrar Admin logged in.');
-            }
-            if ($user->role === 'registrar') {
                 return redirect()->route('registrar.dashboard');
             } elseif ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'cashier') {
+                \App\Models\CashierLog::create([
+                    'type' => 'login',
+                    'message' => 'Cashier logged in.'
+                ]);
                 return redirect()->route('cashier.dashboard');
             }
-    
             return redirect('/');
         }
     }

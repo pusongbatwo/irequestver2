@@ -52,6 +52,7 @@ class DocumentRequestController extends Controller
             'document_types.*.type' => 'required|string',
             'document_types.*.quantity' => 'required|integer|min:1',
             'year_level' => 'required|string|max:20',
+            'school_years' => 'nullable|array',
         ]);
         
         $docRequest = null;
@@ -75,6 +76,7 @@ class DocumentRequestController extends Controller
                     'payment_status' => 'unpaid',
                     'request_date' => now(),
                     'year_level' => $validated['year_level'],
+                    'school_years' => $validated['school_years'] ?? [],
                 ]);
                 foreach ($validated['document_types'] as $doc) {
                     RequestedDocument::create([
@@ -162,14 +164,21 @@ class DocumentRequestController extends Controller
             'amount_received' => 'required|numeric|min:0',
         ]);
 
-        $documentRequest = DocumentRequest::where('reference_number', $validated['reference_number'])->first();
+        $documentRequest = DocumentRequest::where('reference_number', $validated['reference_number'])->with('requestedDocuments')->first();
 
         if (!$documentRequest) {
             return response()->json(['success' => false, 'message' => 'Document request not found.'], 404);
         }
 
+        // Calculate amount due
+        $fees = config('services.document_fees', []);
+        $amountDue = 0;
+        foreach ($documentRequest->requestedDocuments as $doc) {
+            $amountDue += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
+        }
         // Update payment status
         $documentRequest->payment_status = 'paid';
+        $documentRequest->amount_paid = $amountDue;
         $documentRequest->save();
 
         // Send payment confirmation email

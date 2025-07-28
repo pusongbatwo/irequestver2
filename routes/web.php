@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,11 @@ Route::post('/students/store', [RegistrarController::class, 'storeStudent'])->na
 | Web Routes
 |--------------------------------------------------------------------------
 */
+// ✅ Cashier System Logs
+use App\Http\Controllers\CashierLogController;
+Route::middleware('auth')->group(function () {
+    Route::get('/cashier/system-logs', [CashierLogController::class, 'index'])->name('cashier.system_logs');
+});
 
 // ✅ **Landing Page** (Loads when the project starts)
 Route::get('/', function () {

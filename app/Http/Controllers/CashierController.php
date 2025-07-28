@@ -24,21 +24,15 @@ class CashierController extends Controller
         // Pending payments (approved but unpaid)
         $pending_payments = DocumentRequest::where('status', 'approved')->where('payment_status', 'unpaid')->count();
 
-        // Paid today
+        // Paid today (sum of amount_paid)
         $paid_today = DocumentRequest::where('payment_status', 'paid')
             ->whereDate('paid_at', $today)
-            ->count();
+            ->sum('amount_paid');
 
-        // Total collected in current month
-        $paid_requests = DocumentRequest::where('payment_status', 'paid')
+        // Total collected in current month (sum of amount_paid)
+        $total_collected_month = DocumentRequest::where('payment_status', 'paid')
             ->whereBetween('paid_at', [$monthStart, $monthEnd])
-            ->pluck('id');
-        $total_collected_month = RequestedDocument::whereIn('request_id', $paid_requests)
-            ->get()
-            ->reduce(function($sum, $doc) use ($fees) {
-                $price = $fees[$doc->document_type] ?? 0;
-                return $sum + ($price * $doc->quantity);
-            }, 0);
+            ->sum('amount_paid');
 
         // Document type counts (from requested_documents joined with document_requests, filtered by approved status)
         $document_type_counts = RequestedDocument::join('document_requests', 'requested_documents.request_id', '=', 'document_requests.id')
@@ -57,6 +51,9 @@ class CashierController extends Controller
         // Pass approved requests as document_requests for the management section
         $document_requests = $approved_requests;
 
+        // Fetch latest cashier logs
+        $cashier_logs = \App\Models\CashierLog::orderByDesc('created_at')->take(30)->get();
+
         return view('cashier.dashboard', compact(
             'total_approved',
             'pending_payments',
@@ -64,7 +61,8 @@ class CashierController extends Controller
             'total_collected_month',
             'document_type_counts',
             'approved_requests',
-            'document_requests'
+            'document_requests',
+            'cashier_logs'
         ));
     }
 
@@ -74,14 +72,25 @@ class CashierController extends Controller
             'reference_number' => 'required|string',
             'amount_received' => 'required|numeric|min:0',
         ]);
-        $docRequest = DocumentRequest::where('reference_number', $request->reference_number)->first();
+        $docRequest = DocumentRequest::where('reference_number', $request->reference_number)->with('requestedDocuments')->first();
         if (!$docRequest) {
             return response()->json(['success' => false, 'message' => 'Request not found.'], 404);
         }
+        // Calculate amount due
+        $fees = config('services.document_fees', []);
+        $amountDue = 0;
+        foreach ($docRequest->requestedDocuments as $doc) {
+            $amountDue += ($fees[$doc->document_type] ?? 250) * $doc->quantity;
+        }
         $docRequest->payment_status = 'paid';
-        $docRequest->status = 'completed';
+        $docRequest->status = 'paid';
         $docRequest->paid_at = now();
+        $docRequest->amount_paid = $amountDue;
         $docRequest->save();
+        \App\Models\CashierLog::create([
+            'type' => 'process_payment',
+            'message' => 'Processed payment for reference #' . $docRequest->reference_number . ' (₱' . number_format($amountDue, 2) . ')'
+        ]);
         return response()->json(['success' => true]);
     }
 }

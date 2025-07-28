@@ -13,11 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        if (!Schema::hasColumn('document_requests', 'year_level')) {
-            Schema::table('document_requests', function (Blueprint $table) {
-                $table->string('year_level', 20);
-            });
-        }
+        Schema::create('cashier_logs', function (Blueprint $table) {
+            $table->id();
+            $table->string('type');
+            $table->text('message');
+            $table->timestamps(); // created_at, updated_at
+        });
     }
 
     /**
@@ -27,8 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('document_requests', function (Blueprint $table) {
-            $table->dropColumn('year_level');
-        });
+        Schema::dropIfExists('cashier_logs');
     }
 };

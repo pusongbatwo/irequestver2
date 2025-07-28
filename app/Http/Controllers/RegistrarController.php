@@ -142,6 +142,10 @@ class RegistrarController extends Controller
 
         $request->status = 'approved';
         $request->save();
+        \App\Models\CashierLog::create([
+            'type' => 'document_approved',
+            'message' => 'Document request #' . $request->reference_number . ' approved by registrar.'
+        ]);
 
         // Send email
         Mail::to($request->email)->send(new RequestApprovedMail($request));

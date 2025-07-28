@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('document_requests', function (Blueprint $table) {
-            $table->timestamp('paid_at')->nullable()->after('payment_status');
-        });
+        if (!Schema::hasColumn('document_requests', 'paid_at')) {
+            Schema::table('document_requests', function (Blueprint $table) {
+                $table->timestamp('paid_at')->nullable()->after('payment_status');
+            });
+        }
     }
 
     /**

@@ -1410,19 +1410,21 @@
                             <td><span class="status-badge status-{{ strtolower($req->status) }}">{{ ucfirst($req->status) }}</span></td>
                             <td>
                                 @if($req->status == 'pending')
-                                    <button type="button" class="action-btn approve-btn verify-btn" 
-                                        data-request-id="{{ $req->id }}" 
-                                        data-student-id="{{ $req->student_id ?? '' }}" 
-                                        data-student-name="{{ $req->first_name ?? '' }} {{ $req->last_name ?? '' }}"
-                                        title="Verify">
-                                        <i class="fas fa-user-check"></i> Verify
-                                    </button>
-                                    <form action="{{ route('registrar.complete', $req->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="action-btn reject-btn" title="Complete">
-                                            <i class="fas fa-check-double"></i> Complete
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <button type="button" class="action-btn approve-btn verify-btn" 
+                                            data-request-id="{{ $req->id }}" 
+                                            data-student-id="{{ $req->student_id ?? '' }}" 
+                                            data-student-name="{{ $req->first_name ?? '' }} {{ $req->last_name ?? '' }}"
+                                            title="Verify">
+                                            <i class="fas fa-user-check"></i> Verify
                                         </button>
-                                    </form>
+                                        <form action="{{ route('registrar.complete', $req->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="action-btn reject-btn" title="Complete">
+                                                <i class="fas fa-check-double"></i> Complete
+                                            </button>
+                                        </form>
+                                    </div>
                                 @endif
                             </td>
                         </tr>
@@ -1497,7 +1499,6 @@
                         </table>
                     </div>
                 </div>
-                </div>
                 <!-- Custom Context Menu for Department Logo -->
                 <div id="logoContextMenu">
                     <button id="uploadLogoBtn">Upload Department Logo</button>
@@ -1571,6 +1572,22 @@
                     <option value="4th Year">4th Year</option>
                 </select>
             </div>
+            <div style="margin-bottom:1rem;">
+                <label for="school_year" style="font-weight:600;color:#8B0000;">School Year</label>
+                <select name="school_year" id="school_year_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;">
+                    @php
+                        $startYear = 2022;
+                        $currentYear = date('Y');
+                        $schoolYears = [];
+                        for ($y = $startYear; $y <= $currentYear; $y++) {
+                            $schoolYears[] = $y . '-' . ($y+1);
+                        }
+                    @endphp
+                    @foreach(array_reverse($schoolYears) as $sy)
+                        <option value="{{ $sy }}">{{ $sy }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div style="margin-bottom:1.5rem;">
                 <label for="status" style="font-weight:600;color:#8B0000;">Status</label>
                 <select name="status" id="status_modal" class="form-control" required style="border:1.5px solid #8B0000;border-radius:8px;">
@@ -1626,9 +1643,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const schoolYearFilter = document.getElementById('schoolYearFilter');
     const backBtn = document.getElementById('backToGridBtn');
 
+    // Helper: flatten all students for a department
+    function getAllStudentsForDepartment(dept) {
+        let all = [];
+        if (students[dept]) {
+            Object.values(students[dept]).forEach(function(records) {
+                if (Array.isArray(records)) {
+                    all = all.concat(records);
+                }
+            });
+        }
+        return all;
+    }
 
     // Render table for selected department, optionally filtered by school year
-    function renderTable(filterBySchoolYear = true) {
+    function renderTable(filterBySchoolYear = false) {
         if (!selectedDepartment) {
             tableSection.style.display = 'none';
             return;
@@ -1636,29 +1665,26 @@ document.addEventListener('DOMContentLoaded', function() {
         tableSection.style.display = 'block';
         tableBody.innerHTML = '';
         let records = [];
-        if (students[selectedDepartment]) {
-            if (filterBySchoolYear) {
-                // Filter by selected school year
-                records = students[selectedDepartment][selectedSchoolYear] || [];
-            } else {
-                // Show all records for all school years in this department
-                Object.values(students[selectedDepartment]).forEach(arr => {
-                    if (Array.isArray(arr)) records = records.concat(arr);
-                });
-            }
+        if (filterBySchoolYear && students[selectedDepartment] && students[selectedDepartment][selectedSchoolYear]) {
+            records = students[selectedDepartment][selectedSchoolYear];
+        } else {
+            records = getAllStudentsForDepartment(selectedDepartment);
         }
         if (!records || records.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:#8B0000;font-weight:600;">No student records found for this program.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">No records found.</td></tr>';
             return;
         }
         records.forEach(function(student) {
-            tableBody.innerHTML += `<tr>
+            let schoolYearDisplay = student.school_year || (student.school_years ? student.school_years.join(', ') : selectedSchoolYear);
+            let row = document.createElement('tr');
+            row.innerHTML = `
                 <td>${student.student_id || ''}</td>
                 <td>${student.first_name || ''} ${student.last_name || ''}</td>
                 <td>${student.program || ''}</td>
                 <td>${student.year_level || ''}</td>
-                <td>${student.school_year || ''}</td>
-            </tr>`;
+                <td>${schoolYearDisplay}</td>
+            `;
+            tableBody.appendChild(row);
         });
     }
 
@@ -1667,28 +1693,24 @@ document.addEventListener('DOMContentLoaded', function() {
         departmentGrid.querySelectorAll('.department-logo-card').forEach(function(card) {
             card.addEventListener('click', function() {
                 selectedDepartment = card.getAttribute('data-department');
-                // Reset school year filter to latest
-                if (schoolYearFilter.options.length > 0) {
-                    schoolYearFilter.selectedIndex = 0;
-                    selectedSchoolYear = schoolYearFilter.value;
-                }
-                renderTable(false); // Show all records for department
-                tableSection.style.display = 'block';
+                renderTable(false); // Show all students for department
             });
         });
     }
 
-    // School year filter
-    schoolYearFilter.addEventListener('change', function() {
-        selectedSchoolYear = this.value;
-        renderTable(true); // Filter by school year
-    });
+    // School year filter (optional: add a button to filter by year)
+    if (schoolYearFilter) {
+        schoolYearFilter.addEventListener('change', function() {
+            selectedSchoolYear = this.value;
+            renderTable(true); // Filter by school year
+        });
+    }
 
     // Back button logic
     if (backBtn) {
         backBtn.addEventListener('click', function() {
-            tableSection.style.display = 'none';
             selectedDepartment = null;
+            tableSection.style.display = 'none';
         });
     }
 
@@ -1698,15 +1720,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Modal logic for Add Student
 function openAddStudentModal() {
-    document.getElementById('addStudentModal').style.display = 'flex';
+    var modal = document.getElementById('addStudentModal');
+    if (modal) modal.style.display = 'flex';
 }
 function closeAddStudentModal() {
-    document.getElementById('addStudentModal').style.display = 'none';
+    var modal = document.getElementById('addStudentModal');
+    if (modal) modal.style.display = 'none';
 }
-document.getElementById('openAddStudentModalBtn').addEventListener('click', openAddStudentModal);
+var addBtn = document.getElementById('openAddStudentModalBtn');
+if (addBtn) addBtn.addEventListener('click', openAddStudentModal);
 // Modal logic for Import Student
-document.getElementById('openImportStudentModalBtn').addEventListener('click', function() {
-    document.getElementById('importModal').style.display = 'flex';
+var importBtn = document.getElementById('openImportStudentModalBtn');
+if (importBtn) importBtn.addEventListener('click', function() {
+    var importModal = document.getElementById('importModal');
+    if (importModal) importModal.style.display = 'flex';
 });
 </script>
             </div>
@@ -1975,23 +2002,7 @@ document.getElementById('openImportStudentModalBtn').addEventListener('click', f
                 }
 
                 function renderMessages(messages) {
-                    chatMessages.innerHTML = '';
-                    messages.forEach(msg => {
-                        const isMe = msg.sender_type === 'registrar';
-                        const bubble = document.createElement('div');
-                        bubble.style.maxWidth = '80%';
-                        bubble.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
-                        bubble.style.background = isMe ? 'linear-gradient(135deg,#D4AF37,#F5E7C1)' : '#f1f1f1';
-                        bubble.style.color = isMe ? '#333' : '#333';
-                        bubble.style.borderRadius = isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
-                        bubble.style.padding = '10px 14px';
-                        bubble.style.marginBottom = '2px';
-                        bubble.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
-                        bubble.innerHTML = `<span style='font-size:15px;'>${msg.message}</span><br><span style='font-size:11px;color:#888;'>${new Date(msg.created_at).toLocaleString()}</span>`;
-                        chatMessages.appendChild(bubble);
-                    });
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
+                   
 
                 function fetchMessages() {
                     if(!selectedConvoId) return;
@@ -2452,60 +2463,65 @@ document.getElementById('openImportStudentModalBtn').addEventListener('click', f
         });
 
         // Document Requests Management Filters
-        const docTable = document.getElementById('documentRequestsTable');
-        const docRows = Array.from(docTable.querySelectorAll('tbody tr'));
-        const statusTabs = document.querySelectorAll('.filter-tab');
-        const docTypeSelect = document.querySelector('.filter-select');
-        const dateInput = document.querySelector('.filter-date');
-        const docSearchInput = document.querySelector('.document-actions .search-bar input');
+        document.addEventListener('DOMContentLoaded', function() {
+            const docTable = document.getElementById('documentRequestsTable');
+            if (!docTable) return;
+            function getDocRows() {
+                const tbody = docTable.querySelector('tbody');
+                if (!tbody) return [];
+                return Array.from(tbody.querySelectorAll('tr'));
+            }
+            const statusTabs = document.querySelectorAll('.filter-tab');
+            const docTypeSelect = document.querySelector('.filter-select');
+            const dateInput = document.querySelector('.filter-date');
+            const docSearchInput = document.querySelector('.document-actions .search-bar input');
 
-        let activeStatus = 'all';
+            let activeStatus = 'all';
 
-        function filterDocRequests() {
-            const selectedType = docTypeSelect.value.toLowerCase();
-            const selectedDate = dateInput.value;
-            const search = docSearchInput.value.toLowerCase();
-            docRows.forEach(row => {
-                let show = true;
-                // Status filter
-                if (activeStatus !== 'all') {
-                    if (row.getAttribute('data-status') !== activeStatus) show = false;
-                }
-                // Document type filter
-                if (selectedType !== 'all document types') {
-                    const docs = row.getAttribute('data-documents');
-                    if (!docs.includes(selectedType)) show = false;
-                }
-                // Date filter
-                if (selectedDate) {
-                    if (row.getAttribute('data-date') !== selectedDate) show = false;
-                }
-                // Search filter
-                if (search) {
-                    if (!row.textContent.toLowerCase().includes(search)) show = false;
-                }
-                if (show) {
-                    row.classList.remove('filtered-out');
-                } else {
-                    row.classList.add('filtered-out');
-                }
+            function filterDocRequests() {
+                const selectedType = docTypeSelect && docTypeSelect.value ? docTypeSelect.value.toLowerCase() : '';
+                const selectedDate = dateInput && dateInput.value ? dateInput.value : '';
+                const search = docSearchInput && docSearchInput.value ? docSearchInput.value.toLowerCase() : '';
+                getDocRows().forEach(row => {
+                    let show = true;
+                    // Status filter
+                    if (activeStatus !== 'all') {
+                        if (row.getAttribute('data-status') !== activeStatus) show = false;
+                    }
+                    // Document type filter
+                    if (selectedType && selectedType !== 'all document types') {
+                        const docs = row.getAttribute('data-documents') || '';
+                        if (!docs.includes(selectedType)) show = false;
+                    }
+                    // Date filter
+                    if (selectedDate) {
+                        if (row.getAttribute('data-date') !== selectedDate) show = false;
+                    }
+                    // Search filter
+                    if (search) {
+                        if (!row.textContent.toLowerCase().includes(search)) show = false;
+                    }
+                    row.style.display = show ? '' : 'none';
+                });
+            }
+
+            statusTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    statusTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    const label = this.textContent.trim().toLowerCase();
+                    if (label === 'all requests') activeStatus = 'all';
+                    else if (label === 'approved') activeStatus = 'approved';
+                    else activeStatus = label;
+                    filterDocRequests();
+                });
             });
-        }
-
-        statusTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                statusTabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                const label = this.textContent.trim().toLowerCase();
-                if (label === 'all requests') activeStatus = 'all';
-                else if (label === 'approved') activeStatus = 'approved';
-                else activeStatus = label;
-                filterDocRequests();
-            });
+            if (docTypeSelect) docTypeSelect.addEventListener('change', filterDocRequests);
+            if (dateInput) dateInput.addEventListener('change', filterDocRequests);
+            if (docSearchInput) docSearchInput.addEventListener('input', filterDocRequests);
+            // Initial filter on page load
+            filterDocRequests();
         });
-        docTypeSelect.addEventListener('change', filterDocRequests);
-        dateInput.addEventListener('change', filterDocRequests);
-        docSearchInput.addEventListener('input', filterDocRequests);
     </script>
 </body>
     <!-- Verify Modal Placeholder -->
